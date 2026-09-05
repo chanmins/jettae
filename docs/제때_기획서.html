@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="집 안 소모품 교체 시기를 대신 세어주는 앱의 MVP 기획서.">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0; font:14px system-ui, sans-serif}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>제때 기획서</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#EAEEF0;
+    --surface:#FAFBFC;
+    --surface-2:#DDE4E8;
+    --ink:#141A1E;
+    --ink-2:#3A464E;
+    --ink-3:#6C7A82;
+    --line:#C6D0D6;
+    --line-soft:#D9E1E5;
+
+    --accent:#1B5C71;
+    --accent-2:#0F3F50;
+    --accent-soft:#D3E3E9;
+
+    --ok:#2C7A57;
+    --ok-soft:#D5E9DF;
+    --soon:#B26810;
+    --soon-soft:#F6E5CC;
+    --over:#A33A2B;
+    --over-soft:#F6DBD6;
+
+    --f-head:"Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --f-body:"Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --f-mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0D1316;
+      --surface:#141C20;
+      --surface-2:#1D272C;
+      --ink:#E5EDF1;
+      --ink-2:#AEBEC6;
+      --ink-3:#7A8A93;
+      --line:#2A373D;
+      --line-soft:#202B30;
+
+      --accent:#57AFC7;
+      --accent-2:#7FC8DC;
+      --accent-soft:#122F3A;
+
+      --ok:#5BBE90;
+      --ok-soft:#123024;
+      --soon:#DDA045;
+      --soon-soft:#33260F;
+      --over:#E2705C;
+      --over-soft:#361B16;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0D1316;
+    --surface:#141C20;
+    --surface-2:#1D272C;
+    --ink:#E5EDF1;
+    --ink-2:#AEBEC6;
+    --ink-3:#7A8A93;
+    --line:#2A373D;
+    --line-soft:#202B30;
+
+    --accent:#57AFC7;
+    --accent-2:#7FC8DC;
+    --accent-soft:#122F3A;
+
+    --ok:#5BBE90;
+    --ok-soft:#123024;
+    --soon:#DDA045;
+    --soon-soft:#33260F;
+    --over:#E2705C;
+    --over-soft:#361B16;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--f-body); font-weight:400; font-size:15.5px; line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent-soft); color:var(--ink)}
+  a{color:var(--accent); text-underline-offset:3px}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+
+  .wrap{max-width:1240px; margin:0 auto; padding:0 28px}
+  .layout{display:grid; grid-template-columns:216px minmax(0,1fr); gap:60px; align-items:start; padding-bottom:100px}
+
+  /* masthead */
+  .masthead{padding:60px 0 32px; border-bottom:3px solid var(--ink)}
+  .tagstrip{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px}
+  .tag{
+    font-family:var(--f-mono); font-size:10.5px; letter-spacing:.06em;
+    background:var(--accent); color:var(--paper); padding:3px 9px; border-radius:2px;
+  }
+  .tag.b{background:transparent; color:var(--ink-3); border:1px solid var(--line)}
+  h1{
+    font-family:var(--f-head); font-weight:800; letter-spacing:-.03em;
+    font-size:clamp(44px,7vw,76px); line-height:1; margin:0;
+  }
+  .sub{font-family:var(--f-mono); font-size:12px; color:var(--ink-3); letter-spacing:.06em; margin:10px 0 0}
+  .lede{font-size:clamp(16px,2vw,19px); line-height:1.65; color:var(--ink-2); max-width:38em; margin:22px 0 0; font-weight:400}
+  .meta{display:flex; flex-wrap:wrap; gap:0 32px; margin-top:30px}
+  .meta div{font-family:var(--f-mono); font-size:11px; color:var(--ink-3); letter-spacing:.04em}
+  .meta b{display:block; font-family:var(--f-body); font-size:14px; color:var(--ink); font-weight:700; letter-spacing:-.01em; margin-top:2px}
+
+  /* toc */
+  nav.toc{position:sticky; top:24px; padding-top:40px}
+  nav.toc h2{font-family:var(--f-mono); font-size:10.5px; letter-spacing:.16em; color:var(--ink-3); margin:0 0 12px; font-weight:400}
+  nav.toc ol{list-style:none; margin:0; padding:0}
+  nav.toc li{border-top:1px solid var(--line-soft)}
+  nav.toc li:last-child{border-bottom:1px solid var(--line-soft)}
+  nav.toc a{display:grid; grid-template-columns:24px 1fr; gap:8px; padding:8px 0; text-decoration:none; color:var(--ink-2); font-size:13.5px; line-height:1.35}
+  nav.toc a:hover{color:var(--accent)}
+  nav.toc i{font-family:var(--f-mono); font-style:normal; font-size:10.5px; color:var(--ink-3); padding-top:3px}
+
+  main{padding-top:40px; min-width:0}
+  section{margin-bottom:66px; scroll-margin-top:20px}
+  .sec-head{display:flex; align-items:center; gap:12px; margin-bottom:24px}
+  .sec-num{
+    font-family:var(--f-mono); font-size:11px; background:var(--ink); color:var(--paper);
+    padding:4px 8px; border-radius:2px; letter-spacing:.04em;
+  }
+  h2.sec-title{font-family:var(--f-head); font-weight:800; font-size:clamp(24px,3.2vw,31px); margin:0; letter-spacing:-.025em}
+  .sec-rule{height:3px; background:var(--ink); margin-bottom:24px}
+
+  h3{font-family:var(--f-head); font-size:18px; font-weight:700; margin:36px 0 12px; letter-spacing:-.02em; color:var(--ink)}
+  h4{font-size:14.5px; font-weight:700; margin:22px 0 8px; color:var(--ink-2)}
+  p{margin:0 0 14px; max-width:66ch}
+  ul,ol{margin:0 0 16px; padding-left:19px; max-width:66ch}
+  li{margin-bottom:6px}
+  li::marker{color:var(--ink-3)}
+  strong{font-weight:700}
+  code{font-family:var(--f-mono); font-size:.85em; background:var(--surface-2); padding:1px 5px; border-radius:2px}
+
+  .panel{background:var(--surface); border:1px solid var(--line-soft); padding:20px 22px; margin:20px 0}
+  .panel>:last-child{margin-bottom:0}
+  .note{border-left:4px solid var(--accent); background:var(--accent-soft); padding:15px 18px; margin:20px 0}
+  .note p{margin:0; font-size:14.5px; max-width:60ch}
+  .note.warn{border-left-color:var(--over); background:var(--over-soft)}
+  .note.key{border-left-color:var(--soon); background:var(--soon-soft)}
+
+  .grid{display:grid; gap:14px; margin:20px 0}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(195px,1fr))}
+  .card{background:var(--surface); border:1px solid var(--line-soft); padding:16px 18px}
+  .card h4{margin:0 0 6px; font-size:14.5px; color:var(--ink)}
+  .card p{font-size:13.5px; color:var(--ink-2); margin:0; max-width:none}
+  .card .lab{font-family:var(--f-mono); font-size:10px; letter-spacing:.1em; color:var(--accent); display:block; margin-bottom:7px}
+
+  .tablewrap{overflow-x:auto; margin:20px 0; border:1px solid var(--line-soft); background:var(--surface)}
+  table{width:100%; border-collapse:collapse; font-size:13.6px; min-width:500px}
+  th{
+    text-align:left; font-family:var(--f-mono); font-weight:400; font-size:10px; letter-spacing:.1em;
+    color:var(--ink-3); padding:11px 15px; border-bottom:2px solid var(--line); white-space:nowrap;
+  }
+  td{padding:11px 15px; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2)}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--ink); font-weight:500}
+  td.n{font-family:var(--f-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+
+  .pill{display:inline-block; font-family:var(--f-mono); font-size:10px; letter-spacing:.05em; padding:2px 7px; border-radius:2px; border:1px solid var(--line); color:var(--ink-3); white-space:nowrap}
+  .pill.in{border-color:var(--ok); color:var(--ok); background:var(--ok-soft)}
+  .pill.out{border-color:var(--line); color:var(--ink-3)}
+  .pill.a{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+
+  /* dday list mock */
+  .ddaywrap{border:1px solid var(--line); background:var(--surface); margin:22px 0; max-width:460px}
+  .ddayhead{display:flex; justify-content:space-between; padding:12px 15px; border-bottom:1px solid var(--line); font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3); letter-spacing:.06em}
+  .dd{display:grid; grid-template-columns:5px 1fr auto; gap:0; border-bottom:1px solid var(--line-soft); align-items:center}
+  .dd:last-child{border-bottom:none}
+  .dd .stripe{align-self:stretch}
+  .dd .body{padding:11px 14px}
+  .dd .nm{font-size:14px; font-weight:700; color:var(--ink); letter-spacing:-.01em}
+  .dd .sub2{font-size:11.5px; color:var(--ink-3); margin-top:1px}
+  .dd .d{font-family:var(--f-mono); font-size:12.5px; padding:0 15px; font-variant-numeric:tabular-nums; white-space:nowrap; font-weight:500}
+
+  /* notification mock */
+  .noti{border:1px solid var(--line); background:var(--surface); padding:14px 16px; max-width:400px; margin:18px 0; box-shadow:0 6px 20px -14px rgba(0,0,0,.4)}
+  .noti .top{display:flex; gap:8px; align-items:center; font-family:var(--f-mono); font-size:10px; color:var(--ink-3); letter-spacing:.06em; margin-bottom:7px}
+  .noti .ttl{font-weight:700; font-size:14.5px; margin-bottom:3px}
+  .noti .bd{font-size:13px; color:var(--ink-2); margin-bottom:11px}
+  .btns{display:flex; gap:7px}
+  .btn{font-size:12.5px; font-weight:700; padding:6px 13px; border:1px solid var(--accent); color:var(--accent); background:transparent; border-radius:2px}
+  .btn.p{background:var(--accent); color:var(--paper); border-color:var(--accent)}
+
+  /* photo guide */
+  .shots{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:20px 0}
+  .shot{border:1px solid var(--line-soft); background:var(--surface)}
+  .shot .frame{
+    aspect-ratio:4/3; background:var(--surface-2); display:grid; place-items:center;
+    border-bottom:1px solid var(--line-soft); position:relative; padding:12px;
+  }
+  .shot .frame span{font-family:var(--f-mono); font-size:10.5px; color:var(--ink-3); text-align:center; line-height:1.6; border:1px dashed var(--line); padding:10px 12px; width:100%}
+  .shot .cap{padding:11px 13px}
+  .shot .cap b{display:block; font-size:13.5px; margin-bottom:3px}
+  .shot .cap p{font-size:12.3px; color:var(--ink-3); margin:0; max-width:none; line-height:1.55}
+
+  /* flow steps */
+  .flow{display:grid; gap:8px; margin:20px 0}
+  .step{display:grid; grid-template-columns:26px 1fr; gap:13px; background:var(--surface); border:1px solid var(--line-soft); padding:13px 15px}
+  .step .n{font-family:var(--f-mono); font-size:10.5px; background:var(--accent); color:var(--paper); width:22px; height:22px; display:grid; place-items:center; border-radius:2px; margin-top:2px}
+  .step b{display:block; font-size:14px; margin-bottom:2px}
+  .step p{font-size:13.4px; color:var(--ink-2); margin:0; max-width:62ch}
+
+  /* phases */
+  .phase{display:grid; grid-template-columns:108px 1fr; gap:18px; padding:18px 0; border-top:1px solid var(--line-soft)}
+  .phase:first-of-type{border-top:2px solid var(--line)}
+  .phase .when{font-family:var(--f-mono); font-size:11px; color:var(--ink-3)}
+  .phase .when b{display:block; font-family:var(--f-head); font-size:15px; color:var(--accent); font-weight:800; margin-bottom:2px; letter-spacing:-.02em}
+  .phase h4{margin:0; font-size:15.5px; color:var(--ink)}
+  .phase ul{margin:7px 0 0; padding-left:17px}
+  .phase li{font-size:13.5px; color:var(--ink-2)}
+
+  pre{background:var(--surface); border:1px solid var(--line-soft); padding:15px 17px; overflow-x:auto; font-family:var(--f-mono); font-size:12.1px; line-height:1.65; color:var(--ink-2); margin:18px 0}
+  pre .c{color:var(--ink-3)}
+  pre .k{color:var(--accent)}
+  pre .s{color:var(--soon)}
+
+  footer{border-top:1px solid var(--line); padding:24px 0 70px; color:var(--ink-3); font-family:var(--f-mono); font-size:11px; letter-spacing:.04em}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr; gap:0}
+    nav.toc{position:static; padding:28px 0 20px}
+    nav.toc ol{display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+    .wrap{padding:0 18px}
+    .masthead{padding:40px 0 26px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="tagstrip">
+      <span class="tag">제품 기획서 v0.1</span>
+      <span class="tag b">PWA First</span>
+      <span class="tag b">AI 미사용</span>
+      <span class="tag b">2026.09.05 · v1.0</span>
+    </div>
+    <h1>제때</h1>
+    <p class="sub">가칭 · JETTAE · 집 안 소모품 교체 관리</p>
+    <p class="lede">칫솔, 수세미, 렌즈 케이스, 침구 세탁 &mdash; 집 안 소모품을 <strong>언제 바꿔야 하는지 대신 세어주는</strong> 앱. 등록은 탭 한 번, 그다음은 잊어도 된다.</p>
+    <div class="meta">
+      <div>개발·테스트<b>HTML PWA (비배포)</b></div>
+      <div>배포<b>iOS · Android 네이티브</b></div>
+      <div>운영비<b>월 $0 (무료 티어)</b></div>
+      <div>카탈로그<b>159종 작성 완료</b></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc">
+      <h2>목차</h2>
+      <ol>
+        <li><a href="#s1"><i>01</i><span>서비스 개요</span></a></li>
+        <li><a href="#s2"><i>02</i><span>핵심 컨셉</span></a></li>
+        <li><a href="#s3"><i>03</i><span>등록 설계</span></a></li>
+        <li><a href="#s4"><i>04</i><span>알림과 자기교정</span></a></li>
+        <li><a href="#s5"><i>05</i><span>화면 설계</span></a></li>
+        <li><a href="#s6"><i>06</i><span>데이터 · 기술 · 비용</span></a></li>
+        <li><a href="#s7"><i>07</i><span>MVP · 로드맵</span></a></li>
+        <li><a href="#s8"><i>08</i><span>지표 · 리스크</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <!-- 01 -->
+      <section id="s1">
+        <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">서비스 개요</h2></div>
+        <div class="sec-rule"></div>
+
+        <h3>한 줄 정의</h3>
+        <p><strong>제때</strong>는 집 안 소모품의 교체 시기를 대신 기억해주는 앱이다. 사용자는 목록에서 탭 한 번으로 등록하고, 때가 되면 알림을 받고, 바꿨으면 탭 한 번으로 답한다. 그게 전부다.</p>
+        <div class="note key">
+          <p><strong>범위 결정 (v1.0).</strong> 정수기 · 공기청정기 · 에어컨 <strong>필터류와 차량은 제외</strong>한다 &mdash; 필터야 · SmartThings · 제조사 앱이 이미 차지한 영역이고, 정작 아무도 챙기지 않는 칫솔 · 수세미 · 행주 쪽에 집중하는 편이 낫다. 필터가 빠지면서 <strong>라벨 촬영과 AI도 함께 빠졌고</strong>, 그 결과 운영비가 완전히 0이 되고 Phase 1이 몇 주 짧아졌다.</p>
+        </div>
+
+        <h3>세 가지 문제</h3>
+        <div class="grid g3">
+          <div class="card">
+            <span class="lab">문제 1</span>
+            <h4>아무도 세지 않는다</h4>
+            <p>칫솔 3개월, 수세미 한 달, 렌즈 케이스 3개월. 다들 알지만 아무도 세지 않는다. 기억해야 할 물건이 스무 개쯤 되면 애초에 불가능하다.</p>
+          </div>
+          <div class="card">
+            <span class="lab">문제 2</span>
+            <h4>주기를 정확히 모른다</h4>
+            <p>수세미를 얼마마다 바꿔야 하는지 정확히 아는 사람은 드물다. 검색해서 직접 넣으라고 하면 스무 개를 등록할 사람은 없다.</p>
+          </div>
+          <div class="card">
+            <span class="lab">문제 3</span>
+            <h4>기존 앱은 냉장고에 갇혀 있다</h4>
+            <p>유통기한 앱은 식품만 본다. 필터·수세미·렌즈처럼 <em>집 전체에 흩어진 소모품</em>을 한 곳에서 보는 앱은 드물다.</p>
+          </div>
+        </div>
+
+        <h3>해결 방식</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>문제</th><th>제때의 답</th><th>구체적 장치</th></tr></thead>
+            <tbody>
+              <tr><td>세지 않는다</td><td>앱이 먼저 부른다</td><td>사용자가 앱을 열 이유가 필요 없다. 등록 한 번이면 이후는 알림이 끌고 간다</td></tr>
+              <tr><td>주기를 모른다</td><td>이미 알고 있다</td><td><strong>프리셋 카탈로그 159종.</strong> 권장 주기가 들어 있어 고르기만 하면 끝. 경쟁 앱이 공통으로 놓친 지점</td></tr>
+              <tr><td>등록이 귀찮다</td><td>탭 한 번, 2초</td><td>구역을 고르면 그 공간의 물건만 보여준다. 온보딩에서 5개를 한 번에 담는다</td></tr>
+              <tr><td>주기가 사람마다 다르다</td><td>쓸수록 맞춰진다</td><td>알림에 답할 때마다 기준일이 재설정되고, 반복되면 그 사람의 실제 주기로 조정된다</td></tr>
+              <tr><td>운영비 부담</td><td>AI를 쓰지 않는다</td><td>카탈로그와 날짜 계산만으로 동작한다. 100명이든 1,000명이든 <strong>무료 티어 안, 월 $0</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>타깃 사용자</h3>
+        <ul>
+          <li><strong>1차</strong> &mdash; 자취 2~3년차. 집안일을 스스로 관리하기 시작했고, 챙길 게 늘었다는 걸 체감하는 시점.</li>
+          <li><strong>2차</strong> &mdash; 신혼·맞벌이 가구. 관리 대상이 늘고 &ldquo;누가 언제 바꿨는지&rdquo;를 서로 모른다.</li>
+          <li><strong>3차 (확장)</strong> &mdash; 차량·주택 설비까지 관리하는 사용자. 엔진오일, 와이퍼, 보일러, 소화기.</li>
+        </ul>
+
+        <h3>이미 시도된 시장</h3>
+        <p>이 자리는 비어 있지만, 아무도 와본 적 없는 자리는 아니다. 비슷한 시도가 여러 번 있었고 <strong>전부 자리를 잡지 못했다.</strong> 경쟁사 목록보다 이 사실이 중요하다.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>서비스</th><th>범위</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td>교체알리미 <span class="pill a">가장 유사</span></td><td>칫솔 · 렌즈 · 필터 · 비타민 · 면도날</td><td>다운로드 50+ · 2026.08 업데이트</td></tr>
+              <tr><td>필터야</td><td>정수기 · 공기청정기 · 에어컨 필터</td><td><strong>2024.04 이후 업데이트 없음</strong></td></tr>
+              <tr><td>정수기 일기</td><td>정수기 단일</td><td>신생</td></tr>
+              <tr><td>SmartThings Home Care</td><td>삼성 가전 생태계 내부</td><td>해당 제품 보유자 한정</td></tr>
+              <tr><td>Reflow · Filter Reminder 등 (해외)</td><td>주로 주택 설비 &mdash; HVAC · 보일러</td><td>미국 주택 소유자 대상, 국내 주거 환경과 상이</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>해석 &mdash; 수요가 없는가, 실행이 나빴는가</h4>
+        <p>필터야가 2년 넘게 방치된 것은 개발자가 포기했다는 뜻이고, 가볍게 볼 신호가 아니다. 다만 경쟁자들이 <strong>공통으로 놓친 지점이 뚜렷하다</strong>는 점에서 후자일 가능성이 크다.</p>
+        <ul>
+          <li><strong>프리셋 카탈로그가 없다</strong> &mdash; 사용자가 주기를 직접 입력해야 한다. 그러면 휴대폰 리마인더와 다를 게 없고, 20개를 손으로 넣을 사람은 없다.</li>
+          <li><strong>밀렸을 때의 출구가 없다</strong> &mdash; 붉은 항목이 쌓이면 사용자는 만회할 수 없다고 느끼고 앱을 지운다. &ldquo;오늘부터 다시&rdquo;를 주는 앱이 없다.</li>
+          <li><strong>단일 카테고리에 갇혀 있다</strong> &mdash; 필터만, 정수기만. 집 전체를 보는 것은 교체알리미 정도인데 거기엔 카탈로그가 없다. <strong>제때는 그 반대 조합이다</strong> &mdash; 집 전체 + 카탈로그.</li>
+        </ul>
+        <div class="note key">
+          <p><strong>이 셋이 제때가 서는 자리다.</strong> 다만 교체알리미의 다운로드 50+는 신생 앱이어서일 수도 있어 실패의 증거로 단정할 수 없다. 그래서 <strong>만들기 전에 수요부터 확인한다</strong> &mdash; 7장 Phase -1.</p>
+        </div>
+
+        <h3>이 앱이 하지 <em>않는</em> 것</h3>
+        <div class="note warn">
+          <p><strong>비목표(Non-goals).</strong> ① 가계부가 아니다 &mdash; 지출을 기록하지 않는다. ② 쇼핑몰이 아니다 &mdash; 직접 팔지 않는다. ③ 청소·습관 트래커가 아니다 &mdash; 매일 체크할 것을 늘리지 않는다. ④ IoT 연동은 MVP 범위 밖이다.</p>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section id="s2">
+        <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">핵심 컨셉</h2></div>
+        <div class="sec-rule"></div>
+
+        <h3>네 단계 루프</h3>
+        <div class="flow">
+          <div class="step"><span class="n">1</span><div><b>등록한다 &mdash; 딱 한 번</b><p>목록에서 고르거나(2초), 라벨을 찍는다(10초). 이후 이 물건을 위해 사용자가 할 일은 없다.</p></div></div>
+          <div class="step"><span class="n">2</span><div><b>앱이 센다 &mdash; 사용자는 잊는다</b><p>사용자가 앱을 열지 않아도 된다. 잊는 게 정상이고, 잊어도 되게 만드는 것이 이 앱의 가치다.</p></div></div>
+          <div class="step"><span class="n">3</span><div><b>때가 되면 부른다</b><p>&ldquo;오늘 바꿀 것 3개&rdquo;. 하루 한 번, 여러 품목을 묶어서. 잠금화면에서 바로 처리할 수 있어 앱을 열 필요가 없다.</p></div></div>
+          <div class="step"><span class="n">4</span><div><b>답하면 맞춰진다 &mdash; 탭 한 번</b><p>&ldquo;바꿨어요&rdquo;를 누르면 그날이 새 기준일이 된다. 첫 등록이 부정확해도 한 주기면 정확해진다.</p></div></div>
+        </div>
+
+        <h3>설계 원칙 셋</h3>
+        <div class="grid g3">
+          <div class="card"><span class="lab">원칙 1</span><h4>의지에 기대지 않는다</h4><p>습관 앱은 사용자가 매일 앱을 열어야 한다. 제때는 반대다. <strong>앱이 먼저 부른다.</strong> 이것이 리텐션 구조의 전부다.</p></div>
+          <div class="card"><span class="lab">원칙 2</span><h4>날짜는 나중, 사실은 지금</h4><p><strong>기준일</strong>은 틀려도 된다 &mdash; 알림 응답이 재설정해준다. 하지만 <strong>모델명 · 규격 · 유통기한</strong>은 저절로 고쳐지지 않으므로 등록 시점에 반드시 확인받는다.</p></div>
+          <div class="card"><span class="lab">원칙 3</span><h4>막지 않고 되돌린다</h4><p>이 앱의 사용자는 물건을 미룬 사람이다. 밀린 게 12개여도 화면은 담담해야 하고, 언제든 <strong>오늘부터 다시 시작</strong>할 출구가 있어야 한다.</p></div>
+        </div>
+
+        <h3>비슷해 보이는 것들과의 차이</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>대안</th><th>한계</th><th>제때의 차이</th></tr></thead>
+            <tbody>
+              <tr><td>휴대폰 캘린더 · 리마인더</td><td>주기를 직접 알아내서 직접 입력해야 한다. 20개를 등록할 사람은 없다</td><td>프리셋 카탈로그가 주기를 이미 알고 있다</td></tr>
+              <tr><td>유통기한 관리 앱</td><td>식품 중심. 필터·수세미·렌즈는 대상 밖</td><td>집 전체 소모품이 대상</td></tr>
+              <tr><td>메모장 · 스프레드시트</td><td>먼저 열어봐야 안다. 결국 안 연다</td><td>알림이 먼저 온다</td></tr>
+              <tr><td>제조사 앱 · SmartThings</td><td>그 브랜드 가전만. 칫솔·수세미·렌즈 케이스는 대상 밖</td><td>가전이 아닌 것들이 대상</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section id="s3">
+        <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">등록 설계</h2></div>
+        <div class="sec-rule"></div>
+
+        <p>등록은 이 앱의 유일한 진입 마찰이다. 여기서 막히면 나머지 설계가 전부 무의미하므로, 품목의 성격에 따라 세 갈래로 나눈다.</p>
+
+        <h3>두 갈래</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>갈래</th><th>해당 품목</th><th>사용자 동작</th><th>카탈로그</th></tr></thead>
+            <tbody>
+              <tr><td>① 목록 선택</td><td>칫솔, 수세미, 행주, 면도날, 침구 세탁, 렌즈 케이스, 세탁조 청소 &hellip;</td><td>탭 1회 (2초)</td><td class="n">127종</td></tr>
+              <tr><td>② 개봉일 기준</td><td>선크림, 마스카라, 영양제, 참기름, 렌즈 세척액 &hellip;</td><td>탭 2회 (5초)</td><td class="n">32종</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note key">
+          <p><strong>카메라는 쓰지 않는다.</strong> 초기 설계에는 라벨 촬영 갈래가 있었으나, 필터류를 제외하면서 남는 촬영 대상이 화장품 개봉기한 정도가 됐다. 그건 <strong>&ldquo;오늘 개봉&rdquo; + &ldquo;12개월&rdquo; 두 번 탭</strong>이면 끝나 사진보다 빠르다. 청소기 먼지봉투 규격 하나 때문에 카메라 · 이미지 압축 · 스토리지 · AI 파이프라인 · 인식 확인 화면을 전부 만들 이유가 없다.</p>
+        </div>
+
+        <h3>② 개봉일 기준 품목</h3>
+        <p>화장품 · 영양제 · 개봉한 식품은 <em>산 날</em>이 아니라 <strong>개봉한 날</strong>부터 세야 한다. 그리고 사용기한이 제품마다 다르다 &mdash; 마스카라는 4개월, 선크림은 12개월, 향수는 3년.</p>
+        <pre><span class="c">// 선크림 등록 — 탭 두 번</span>
+언제 개봉하셨어요?
+  <span class="k">[ 오늘 개봉했어요 ]</span>   [ 한 달쯤 전 ]   [ 세 달쯤 전 ]   [ 직접 고르기 ]
+
+사용기한
+  [ 6개월 ]   <span class="k">[ 12개월 ]</span>   [ 24개월 ]      <span class="c">← 카탈로그 기본값이 선택돼 있다</span>
+  <span class="c">제품 뒤 6M · 12M 표시를 보고 골라주세요</span></pre>
+        <ul>
+          <li>카탈로그가 <strong>기본값을 이미 알고 있으므로</strong> 두 번째 탭은 대부분 확인만 하고 넘어간다</li>
+          <li>제품 뒷면의 <code>6M</code> · <code>12M</code>(개봉 후 사용기한) 표시를 안내한다. 그런 표시가 있다는 것조차 모르는 사람이 많다</li>
+          <li>기한이 민감한 품목(영양제 · 유산균 · 렌즈 세척액)은 <strong>제조사 표기가 카탈로그 값보다 우선</strong>임을 화면에 명시한다</li>
+        </ul>
+
+        <h3>기준일 처리</h3>
+        <p>기본값은 <strong>등록일 = 오늘</strong>이다. 다만 앱을 처음 설치했을 때 등록하는 것들은 대부분 <em>이미 쓰고 있던 물건</em>이라, 전부 오늘부터 세면 첫 주기가 통째로 어긋난다.</p>
+
+        <pre><span class="c">// 등록 직후 화면</span>
+🪥 칫솔          ✓ 등록됨 · 3개월 뒤 알림
+                 <span class="k">쓰던 거예요 →</span>   <span class="c">← 안 누르면 오늘 기준, 마찰 0</span>
+
+<span class="c">// '쓰던 거예요'를 눌렀을 때만 뜨는 선택지</span>
+   대략 얼마나 쓰셨어요?
+   [ 1주 ] [ 1개월 ] [ 3개월 ] [ 기억 안 남 ]</pre>
+
+        <p>기억이 안 나면 오늘부터 세면 된다. <strong>한 주기만 지나면 알림 응답으로 자동 교정</strong>되므로, 첫 등록의 정확도에 매달릴 필요가 없다.</p>
+
+        <h3>프리셋 카탈로그 &mdash; 이 앱의 진짜 자산</h3>
+        <p>등록이 2초가 되려면 &ldquo;품목 &rarr; 권장 주기&rdquo; 데이터가 이미 있어야 한다. 이 카탈로그의 품질이 곧 제품의 품질이다. <strong>159종을 작성 완료했다</strong>(별도 파일: 스프레드시트 + JSON 시드). 아래는 발췌.</p>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>구역</th><th>품목</th><th>권장 주기</th><th>갈래</th></tr></thead>
+            <tbody>
+              <tr><td>욕실</td><td>칫솔</td><td class="n">3개월</td><td>①</td></tr>
+              <tr><td>욕실</td><td>샤워기 헤드 세척</td><td class="n">3개월</td><td>①</td></tr>
+              <tr><td>욕실</td><td>면도날</td><td class="n">2~4주</td><td>①</td></tr>
+              <tr><td>주방</td><td>수세미</td><td class="n">2~4주</td><td>①</td></tr>
+              <tr><td>주방</td><td>행주</td><td class="n">1개월</td><td>①</td></tr>
+              <tr><td>주방</td><td>고무장갑</td><td class="n">1개월</td><td>①</td></tr>
+              <tr><td>주방</td><td>도마</td><td class="n">1년</td><td>①</td></tr>
+              <tr><td>거실</td><td>도어락 건전지</td><td class="n">6개월</td><td>①</td></tr>
+              <tr><td>거실</td><td>선풍기 청소 <span class="pill out">여름</span></td><td class="n">1개월</td><td>①</td></tr>
+              <tr><td>거실</td><td>청소기 먼지봉투</td><td class="n">1개월</td><td>①</td></tr>
+              <tr><td>침실</td><td>침구 세탁</td><td class="n">2주</td><td>①</td></tr>
+              <tr><td>침실</td><td>베개</td><td class="n">1~2년</td><td>①</td></tr>
+              <tr><td>침실</td><td>매트리스</td><td class="n">7~10년</td><td>①</td></tr>
+              <tr><td>미용</td><td>콘택트렌즈 케이스</td><td class="n">3개월</td><td>①</td></tr>
+              <tr><td>미용</td><td>선크림 (개봉 후)</td><td class="n">12개월</td><td>②</td></tr>
+              <tr><td>미용</td><td>마스카라 (개봉 후)</td><td class="n">4개월</td><td>②</td></tr>
+              <tr><td>안전</td><td>화재감지기 배터리</td><td class="n">1년</td><td>①</td></tr>
+              <tr><td>안전</td><td>소화기 압력 점검</td><td class="n">1개월</td><td>①</td></tr>
+              <tr><td>세탁</td><td>세탁조 청소</td><td class="n">2개월</td><td>①</td></tr>
+              <tr><td>세탁</td><td>러닝화 <span class="pill out">사용량</span></td><td class="n">700km <span style="color:var(--ink-3)">또는</span> 18개월</td><td>①</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:13px; color:var(--ink-3)">※ 위 주기는 일반적인 권장값이며 제품·사용 환경에 따라 다르다. 앱 내에서는 제조사 권장값이 있으면 그것을 우선한다.</p>
+
+        <h4>날짜로 셀 수 없는 품목 &mdash; 사용량 기준</h4>
+        <p>엔진오일은 보통 <strong>7,000~10,000km</strong>에서 갈고 기간은 보조 기준이다. 정확히는 <strong>둘 중 먼저 도달하는 쪽</strong>이 교체 시점이다 &mdash; 타지 않아도 1년이 넘으면 변질되기 때문이다. 렌즈(착용 횟수)와 면도날(사용 횟수)도 같은 구조다.</p>
+        <p>사용량을 매번 입력하게 하면 아무도 쓰지 않는다. 그래서 <strong>가끔 물어서 속도를 추정</strong>한다 &mdash; 주기 자기교정과 같은 원리다.</p>
+        <pre>등록 시    현재 주행거리 입력          <span class="c">52,000 km</span>
+   ↓
+앱 추정    월 1,000km → 8,000km까지 약 8개월
+   ↓
+알림 때    <span class="k">"지금 몇 km예요?"</span> → 실제값으로 주행 속도 보정
+   ↓
+다음 예측이 정확해진다</pre>
+        <div class="note">
+          <p>카탈로그에 <code>metric</code>(<code>time</code> / <code>usage</code>), <code>cycle_usage</code>, <code>unit</code>을 둔다. <strong>차량은 Phase 4지만 스키마는 지금 잡아둔다</strong> &mdash; 나중에 필드를 끼워 넣는 마이그레이션 비용이 더 크다.</p>
+        </div>
+
+        <div class="note key">
+          <p><strong>카탈로그가 해자(垓字)가 된다.</strong> 초기값은 수동 큐레이션으로 만들지만, 사용자들의 &ldquo;실제로 바꾼 시점&rdquo; 응답이 쌓이면 <em>현실의 주기</em>를 알게 된다. 사용자가 1,000명이 되면 이 데이터는 어떤 경쟁자도 하루아침에 복제할 수 없다.</p>
+        </div>
+
+        <h3>예외 상황 처리</h3>
+        <p>등록으로 끝나지 않는 상황이 있다. 아래 셋을 MVP에서 처리하지 않으면, 앱이 <strong>틀린 정보를 자신 있게 알려주는</strong> 상태가 된다. 알림이 안 오는 것보다 나쁘다.</p>
+
+        <h4>① 계절 품목 &mdash; 겨울에 오는 &ldquo;선풍기 청소할 때예요&rdquo;</h4>
+        <p>12월에 이 알림이 뜨는 순간 신뢰가 끝난다. 한국은 계절이 뚜렷해 해당 품목이 적지 않다 &mdash; 선풍기 · 제습제(여름), 가습기 · 전기장판 · 찜질팩(겨울).</p>
+        <ul>
+          <li>카탈로그에 <code>season</code> 필드를 둔다 &mdash; <code>all</code> / <code>summer</code> / <code>winter</code></li>
+          <li><strong>시즌 밖에서는 카운트를 멈춘다.</strong> 남은 일수가 줄지 않고 얼어붙는다</li>
+          <li>시즌이 시작되면 한 번만 묻는다 &mdash; &ldquo;선풍기 꺼내셨어요?&rdquo; 누른 날이 기준일이 된다</li>
+        </ul>
+        <div class="note">
+          <p><strong>계절 품목은 달력이 아니라 &lsquo;쓰기 시작한 날&rsquo;이 기준이다.</strong> 시간이 아니라 사용 개시가 주기를 연다.</p>
+        </div>
+
+        <h4>② 같은 품목이 여러 개 &mdash; 화장실 둘, 칫솔 넷</h4>
+        <ul>
+          <li>등록 시 이미 구역을 고르므로 <strong>&ldquo;욕실 칫솔&rdquo;, &ldquo;안방 칫솔&rdquo;</strong>로 자연스럽게 갈린다. 같은 구역에 재등록하면 뒤에 번호를 붙인다</li>
+          <li>가족 칫솔처럼 <strong>함께 바꾸는 것은 하나로 묶고 개수만 기록</strong>한다(<code>group_count</code>). 따로 관리하려는 사람만 분리한다</li>
+        </ul>
+
+        <h4>③ 제품 교체와 이사 &mdash; 사진과 모델명이 통째로 거짓이 되는 순간</h4>
+        <p>이사하면 챙기던 물건의 절반이 바뀐다. 두고 온 것에 계속 알림이 가고, 새로 생긴 것은 아무도 세지 않는다. 목록이 현실과 어긋나는 순간 앱을 믿지 않게 된다.</p>
+        <ul>
+          <li>상세 화면에 <strong>&ldquo;새것으로 바꿨어요&rdquo;</strong> &mdash; 교체 이력을 새로 시작하고 주기를 카탈로그 기본값으로 되돌린다</li>
+          <li>이사는 설정의 별도 흐름 &mdash; 전체 목록을 체크박스로 펼쳐 <strong>&ldquo;가져온 것 / 두고 온 것&rdquo;</strong>을 한 번에 정리한다</li>
+          <li>이사는 오히려 <strong>재참여 기회</strong>다. 어차피 그때 집 안 물건을 전부 만지기 때문이다</li>
+        </ul>
+
+        <div class="note key">
+          <p><strong>이 예외들을 관통하는 뿌리가 하나 있다.</strong> 소모품은 시간이 아니라 <em>사용량</em>으로 닳는다. 날짜로 세는 것은 &ldquo;매일 비슷하게 쓴다&rdquo;는 가정 위의 근사치다. MVP는 그 근사로 가되, 근사가 깨지는 세 지점 &mdash; <strong>계절 · 장기 부재 · 사용 빈도</strong> &mdash; 을 알고 설계한다. 계절만 MVP에서 막고, 나머지 둘은 &ldquo;쓰기 시작했어요 / 다시 셀게요&rdquo; 같은 수동 리셋으로 열어둔다.</p>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section id="s4">
+        <div class="sec-head"><span class="sec-num">04</span><h2 class="sec-title">알림과 자기교정</h2></div>
+        <div class="sec-rule"></div>
+
+        <p>이 앱은 알림이 곧 제품이다. 알림이 안 오면 존재하지 않는 앱이고, 너무 오면 삭제당한다.</p>
+
+        <h3>알림 시점</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>시점</th><th>내용</th><th>대상</th></tr></thead>
+            <tbody>
+              <tr><td class="n">D-7</td><td>미리 알림. 사러 갈 시간을 준다</td><td>주기 1개월 이상 품목만</td></tr>
+              <tr><td class="n">D-DAY</td><td>교체 알림 + 사진 + 모델명 + 응답 버튼</td><td>전체</td></tr>
+              <tr><td class="n">D+3</td><td>미응답 시 1회 재알림</td><td>전체</td></tr>
+              <tr><td class="n">D+10</td><td>마지막 재알림 후 &lsquo;밀림&rsquo; 상태로 전환</td><td>전체</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note">
+          <p><strong>하루 한 번, 묶어서 보낸다.</strong> 같은 날 여러 품목이 걸리면 알림 하나로 합친다 &mdash; &ldquo;오늘 바꿀 것 3개&rdquo;. 발송 시간은 사용자가 정하고, 기본값은 저녁 8시(집에 있고 바로 처리 가능한 시간)로 둔다.</p>
+        </div>
+
+        <h3>알림 응답</h3>
+        <div class="noti">
+          <div class="top"><span>제때</span><span>·</span><span>오후 8:00</span></div>
+          <div class="ttl">오늘 바꿀 것 3개</div>
+          <div class="bd">수세미, 행주, 침구 세탁</div>
+          <div class="btns"><button class="btn p">다 바꿨어요</button><button class="btn">앱에서 볼게요</button></div>
+        </div>
+
+        <ul>
+          <li><strong>바꿨어요</strong> &mdash; 오늘이 새 기준일이 된다. 다음 알림은 오늘 + 주기.</li>
+          <li><strong>아직이요</strong> &mdash; 3일 뒤 다시 묻는다. 기준일은 그대로 유지.</li>
+          <li><strong>아직 멀쩡해요</strong> &mdash; 미룬 게 아니라 <em>아직 쓸 만한</em> 경우. 다음 절에서 따로 다룬다.</li>
+          <li>앱을 열지 않고 <strong>알림에서 바로 처리</strong>할 수 있어야 한다. 이 앱에서는 <em>앱을 열어야만 하는 것</em>이 실패다.</li>
+        </ul>
+
+        <h3>알림 없이 먼저 바꾸는 경우</h3>
+        <p>설계상 순서는 &ldquo;알림 &rarr; 교체 &rarr; 응답&rdquo;이지만, 현실에서는 자주 뒤집힌다. 마트에서 수세미가 눈에 띄어 사 오고 그냥 바꾼다. 알림은 관여하지 않는다. 앱이 이를 모르면 다음 주에 &ldquo;수세미 바꿀 때예요&rdquo;가 뜨고 사용자는 <strong>&ldquo;아까 바꿨는데?&rdquo;</strong>라고 생각한다. 반복되면 앱을 믿지 않게 된다.</p>
+
+        <div class="flow">
+          <div class="step"><span class="n">1</span><div><b>홈 맨 위 빠른 기록 &mdash; 주력 경로</b><p>임박 순 3개를 칩으로 띄운다. 탭 한 번이면 오늘로 기록되고 끝난다. <strong>목록보다 위에 둔다.</strong> 사용자가 스스로 앱을 연 순간은 실패가 아니라 기회다 &mdash; 2초 안에 끝나기만 하면 된다.</p></div></div>
+          <div class="step"><span class="n">2</span><div><b>알림에서 소급</b><p>알림의 &ldquo;바꿨어요&rdquo;는 그냥 오늘로 기록한다. 며칠 오차는 소모품 주기에서 의미가 없다. 한참 전에 바꾼 경우만 상세 화면에서 마지막 교체일을 직접 고친다.</p></div></div>
+          <div class="step"><span class="n">3</span><div><b>자기교정이 따라온다</b><p>미리 바꾸는 것이 습관이면 실제 주기가 드러난다. 주기가 한 번 조정되면 &lsquo;미리 바꾸는 일&rsquo; 자체가 사라진다. 알림이 그 사람의 리듬에 맞아버리기 때문이다.</p></div></div>
+        </div>
+
+        <div class="note key">
+          <p><strong>이 문제는 저절로 작아진다.</strong> 자주 미리 바꾸게 되는 품목(수세미 · 행주 · 청소포)은 애초에 며칠 오차가 무의미하고, 오차가 신경 쓰이는 긴 주기 품목(베개 · 매트리스 · 화재감지기)은 알림 없이 자발적으로 바꾸는 일이 거의 없다. <strong>이 비대칭이 문제를 줄여주므로 과하게 설계하지 않는다.</strong> 그리고 앱이 틀려도 응답 한 번이면 복구된다.</p>
+        </div>
+
+        <h3>&ldquo;아직 멀쩡해요&rdquo; &mdash; 늦게 바꾸는 쪽의 교정</h3>
+        <p>수세미를 등록했는데 요리를 자주 안 해서 한 달이 지나도 거의 새것일 수 있다. 이때 사용자는 <em>미룬 게 아니라 아직 쓸 만한</em> 것이다. &ldquo;아직이요&rdquo;로 받으면 사흘 뒤에 또 물어보게 되어 잔소리가 된다.</p>
+        <p>카탈로그의 30일은 <strong>매일 설거지하는 집 기준</strong>이다. 사용 빈도가 낮으면 안 맞는 게 정상이고, 이건 오류가 아니라 개인차다. 그래서 세 번째 응답을 둔다.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>응답</th><th>의미</th><th>앱의 처리</th></tr></thead>
+            <tbody>
+              <tr><td>바꿨어요</td><td>교체 완료</td><td>오늘이 새 기준일. 이력에 기록</td></tr>
+              <tr><td>아직이요</td><td>미뤘다</td><td>3일 뒤 재알림. 기준일 유지</td></tr>
+              <tr><td><strong>아직 멀쩡해요</strong></td><td>덜 닳았다</td><td><strong>주기의 30%만큼 미룬다</strong>(30일 → +9일). 반복되면 주기 자체를 늘릴지 제안</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <p><strong>두 번째 물음은 질문을 바꾼다.</strong> 푸시 액션 버튼은 두 개까지가 현실적이므로, D-DAY 알림은 <code>[바꿨어요] [아직이요]</code>로 두고 D+3 재알림에서 <strong>&ldquo;수세미, 아직 멀쩡한가요?&rdquo;</strong> &rarr; <code>[멀쩡해요] [곧 바꿀게요]</code>로 묻는다. 화면 안에서는 처음부터 세 선택지를 모두 노출한다.</p>
+        </div>
+        <div class="note warn">
+          <p><strong>안전 품목은 예외다.</strong> 화재감지기 건전지 · 소화기 · 가스 호스는 &ldquo;아직 멀쩡해요&rdquo;로도 주기가 늘어나지 않는다(<code>safety_locked</code>). 미룰 수는 있어도 권장 주기는 그대로 유지한다.</p>
+        </div>
+
+        <h3>주기 자기교정</h3>
+        <p>사람마다 실제 주기는 다르다. 칫솔을 3개월로 잡아뒀지만 매번 4개월 반에 바꾸는 사람이 있다. 응답 이력이 쌓이면 그 사람에게 맞춘다.</p>
+
+        <pre><span class="c">// 교정 로직</span>
+<span class="k">if</span> (응답 이력 &gt;= 3회) {
+  실제주기 = <span class="k">중앙값</span>(최근 3회의 교체 간격)   <span class="c">// 평균 대신 중앙값 — 이상치 방어</span>
+
+  <span class="k">if</span> (|실제주기 - 현재주기| &gt; 현재주기 * 0.3) {
+    <span class="c">// 양방향 — 일찍 바꾸는 사람도, 늦게 바꾸는 사람도 같은 로직</span>
+    <span class="c">// 30% 이상 차이 나면 제안한다. 몰래 바꾸지 않는다</span>
+    제안(<span class="s">"칫솔을 보통 4개월 반에 바꾸시네요. 주기를 바꿔드릴까요?"</span>)
+  }
+
+  <span class="c">// '아직 멀쩡해요'가 3회 누적돼도 같은 제안을 띄운다</span>
+}</pre>
+
+        <div class="note key">
+          <p><strong>임의로 바꾸지 않고 제안한다.</strong> 사용자 모르게 주기가 달라지면 앱을 신뢰할 수 없게 된다. 안전 관련 품목(화재감지기 배터리, 소화기)은 <strong>자기교정 대상에서 제외</strong>하고 권장 주기를 고수한다.</p>
+        </div>
+
+        <h3>알림 피로 방지</h3>
+        <ul>
+          <li><strong>묶음 발송</strong> &mdash; 하루 최대 1건. 여러 품목은 하나로 합친다.</li>
+          <li><strong>연속 무시 감지</strong> &mdash; 같은 품목을 3회 연속 무시하면 &ldquo;이건 계속 알려드릴까요?&rdquo;로 한 번 묻고, 아니면 조용히 보관 처리한다.</li>
+          <li><strong>짧은 주기 상한</strong> &mdash; 2주 미만 주기 품목은 등록 시 &ldquo;자주 알림이 갑니다&rdquo;를 고지한다.</li>
+          <li><strong>휴면 모드</strong> &mdash; 장기 부재(여행 등) 시 전체 알림을 일시 정지. 복귀 시 &ldquo;안 쓴 만큼 미룰까요?&rdquo;를 한 번 묻는다.</li>
+        </ul>
+
+        <h3>밀린 항목이 쌓였을 때</h3>
+        <p>한 달 만에 앱을 열었더니 붉은 항목이 15개. 이 화면을 보면 사용자는 <strong>만회할 수 없다고 느끼고 앱을 지운다.</strong> 밀린 항목은 목록 그대로 보여주면 안 된다.</p>
+        <ul>
+          <li>밀린 것이 5개를 넘으면 목록을 접고 <strong>배너 하나</strong>로 요약한다 &mdash; &ldquo;밀린 것 12개&rdquo;</li>
+          <li>탭하면 일괄 처리 화면. 가장 큰 버튼은 <strong>&ldquo;지금부터 다시 셀게요&rdquo;</strong> &mdash; 과거를 캐묻지 않고 전부 오늘 기준으로 리셋한다</li>
+          <li>개별로 &ldquo;바꿨어요 / 이제 안 써요&rdquo;도 고를 수 있게 하되, <strong>기본 출구는 일괄 리셋</strong>이다. 자비로운 탈출구가 없으면 이탈한다</li>
+        </ul>
+
+        <h3>조용한 실패 &mdash; 푸시가 죽은 경우</h3>
+        <p>방해금지, 폰 교체, 권한 해제, iOS에서 홈 화면 앱 삭제. 서버는 발송 성공으로 기록하지만 사용자에게는 닿지 않는다. <strong>아무도 에러를 보지 못한다.</strong> 알림이 곧 제품인 앱에서 가장 위험한 실패 방식이다.</p>
+        <ul>
+          <li>사용자별 <strong>알림 응답률을 감시</strong>한다. 3회 연속 무응답이면 푸시가 죽은 것으로 간주</li>
+          <li>이메일로 1회 폴백 &mdash; &ldquo;알림이 안 가고 있는 것 같아요&rdquo; + 재설정 링크</li>
+          <li>재구독에 실패한 기기는 <code>push_subscriptions</code>에서 정리한다</li>
+        </ul>
+      </section>
+
+      <!-- 05 -->
+      <section id="s5">
+        <div class="sec-head"><span class="sec-num">05</span><h2 class="sec-title">화면 설계</h2></div>
+        <div class="sec-rule"></div>
+
+        <h3>구조 &mdash; 탭 3개면 충분하다</h3>
+        <p>이 앱은 오래 머무는 앱이 아니다. 화면이 많을수록 나쁘다.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>탭</th><th>역할</th><th>체류 시간</th></tr></thead>
+            <tbody>
+              <tr><td>홈</td><td>D-day 순으로 정렬된 전체 목록. 상태별 색상</td><td class="n">10~20초</td></tr>
+              <tr><td>추가 <span class="pill a">중앙 버튼</span></td><td>등록 진입. 카메라 또는 목록</td><td class="n">5~10초</td></tr>
+              <tr><td>설정</td><td>알림 시간, 휴면, 계정, 내보내기</td><td class="n">드물게</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>홈 &mdash; 한 화면에서 다 보인다</h3>
+        <div class="ddaywrap">
+          <div class="ddayhead"><span>우리 집 · 14개</span><span>D-DAY 순</span></div>
+          <div style="padding:12px 14px; border-bottom:1px solid var(--line)">
+            <div style="font-size:12.5px; color:var(--ink-3); margin-bottom:8px">방금 뭐 바꾸셨어요?</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap">
+              <span class="pill a">수세미</span><span class="pill a">행주</span><span class="pill a">칫솔</span><span class="pill">+ 다른 거</span>
+            </div>
+          </div>
+          <div class="dd">
+            <div class="stripe" style="background:var(--over)"></div>
+            <div class="body"><div class="nm">주방 수세미</div><div class="sub2">2주 주기 · 3주 지남</div></div>
+            <div class="d" style="color:var(--over)">D+7</div>
+          </div>
+          <div class="dd">
+            <div class="stripe" style="background:var(--soon)"></div>
+            <div class="body"><div class="nm">행주</div><div class="sub2">한 달 주기</div></div>
+            <div class="d" style="color:var(--soon)">D-3</div>
+          </div>
+          <div class="dd">
+            <div class="stripe" style="background:var(--soon)"></div>
+            <div class="body"><div class="nm">침구 세탁</div><div class="sub2">2주 주기</div></div>
+            <div class="d" style="color:var(--soon)">D-5</div>
+          </div>
+          <div class="dd">
+            <div class="stripe" style="background:var(--ok)"></div>
+            <div class="body"><div class="nm">칫솔</div><div class="sub2">3개월 주기</div></div>
+            <div class="d" style="color:var(--ok)">D-41</div>
+          </div>
+          <div class="dd">
+            <div class="stripe" style="background:var(--ok)"></div>
+            <div class="body"><div class="nm">렌즈 케이스</div><div class="sub2">3개월 주기</div></div>
+            <div class="d" style="color:var(--ok)">D-22</div>
+          </div>
+        </div>
+
+        <ul>
+          <li><strong>맨 위는 빠른 기록</strong> &mdash; 임박 순 3개를 칩으로. 알림 없이 먼저 바꾼 경우를 여기서 잡는다(4장). 목록보다 위에 둔다</li>
+          <li><strong>등록 0개일 때는 홈이 곧 추천 화면이다</strong> &mdash; &ldquo;추천 목록 보기&rdquo; 버튼을 한 번 더 누르게 하지 않고, 온보딩에서 봤던 목록을 <strong>이미 펼쳐진 상태</strong>로 보여준다. 이 사용자에게 도달할 다른 경로가 없다</li>
+          <li><strong>상태 3색</strong> &mdash;<span class="pill" style="border-color:var(--ok);color:var(--ok)">여유</span> D-8 이상 &nbsp; <span class="pill" style="border-color:var(--soon);color:var(--soon)">임박</span> D-7 ~ D-DAY &nbsp; <span class="pill" style="border-color:var(--over);color:var(--over)">밀림</span> D+1 이상</li>
+          <li>항목을 오른쪽으로 밀면 <strong>&ldquo;바꿨어요&rdquo;</strong>가 바로 처리된다. 상세 화면에 들어가지 않아도 된다.</li>
+          <li>구역(욕실·주방·거실·침실) 필터는 품목이 15개를 넘을 때만 노출한다.</li>
+        </ul>
+
+        <h3>상세 화면</h3>
+        <ul>
+          <li>등록할 때 찍은 <strong>라벨 사진</strong>(크게) + 인식된 모델명 · 규격</li>
+          <li>주기, 마지막 교체일, 다음 예정일 &mdash; 모두 직접 수정 가능</li>
+          <li><strong>교체 이력</strong> &mdash; 날짜 목록. 이게 쌓이면 &ldquo;평균 4개월 반&rdquo; 같은 자기 데이터가 된다</li>
+          <li>Phase 2에서 이 화면에 <strong>재구매 링크</strong>가 붙는다</li>
+        </ul>
+
+        <h3>등록 플로우</h3>
+        <div class="flow">
+          <div class="step"><span class="n">1</span><div><b>중앙 + 버튼 → 품목 목록</b><p>구역별로 묶인 프리셋 159종. <strong>진입점은 여기 하나다.</strong></p></div></div>
+          <div class="step"><span class="n">2</span><div><b>품목 선택</b><p>① 갈래(칫솔 · 수세미 등 127종)는 <strong>여기서 끝난다.</strong> 탭하면 담기고 &ldquo;3개월 뒤 알림&rdquo;이 뜬다. 연속으로 여러 개 담을 수 있다.</p></div></div>
+          <div class="step"><span class="n">3</span><div><b>개봉일 · 사용기한 &mdash; ② 갈래 32종만</b><p>&ldquo;오늘 개봉했어요&rdquo;와 사용기한 버튼. 카탈로그 기본값이 이미 선택돼 있어 확인만 하면 된다.</p></div></div>
+          <div class="step"><span class="n">4</span><div><b>기준일 확인 (선택)</b><p>기본은 오늘. &ldquo;쓰던 거예요&rdquo;를 누른 사람만 대략적인 시점을 고른다.</p></div></div>
+        </div>
+
+        <div class="note">
+          <p><strong>와이어프레임은 별도 문서로 작성했다.</strong> 온보딩 5화면과 홈 · 추가 · 상세 · 알림 · 밀린 항목 · 계절 재개 · 알림 꺼짐 화면, 그리고 알림 · 빈 상태 · 에러 문구가 확정 카피로 들어가 있다.</p>
+        </div>
+
+                <h3>온보딩 &mdash; 5개와 2주가 관건</h3>
+        <div class="note warn">
+          <p><strong>온보딩에 통과 조건은 없다.</strong> 하나도 고르지 않고 끝까지 넘어갈 수 있다. 체크박스를 채워야 다음으로 갈 수 있는 온보딩은 <em>가짜 활성화</em>를 만든다 &mdash; 관문을 넘으려고 아무거나 체크한 사용자는 진짜 사용자가 아니고, 첫 알림이 왔을 때 자기가 뭘 등록했는지도 모른다.</p>
+        <p>대신 <strong>빈손으로 나간 사용자를 홈에서 다시 만난다.</strong> 등록이 0개면 홈이 곧 추천 화면이 되고, 강요가 아니라 두 번째 기회가 된다. 다만 알아둘 것은 &mdash; 등록 0개인 사용자에게는 <strong>알림을 보낼 방법이 없다.</strong> 그 사람과의 유일한 접점은 빈 홈 화면 하나뿐이므로, 이 화면이 온보딩의 마지막 페이지만큼 공들여 설계돼야 한다.</p>
+        </div>
+        <ol>
+          <li>가치 제안 2장 &mdash; &ldquo;바꿀 때를 대신 세어드려요&rdquo; / &ldquo;바꿀 땐 뭘 살지도 알려드려요&rdquo;</li>
+          <li><strong>집 구역 선택</strong> &mdash; 욕실 / 주방 / 거실 / 침실 (해당하는 곳만)</li>
+          <li><strong>추천 목록 제시</strong> &mdash; 선택한 구역의 흔한 품목을 체크박스로. 짧은 주기 품목이 위에 오고 기본 체크되어 있지만 언제든 해제할 수 있고, <strong>전부 해제하고 넘어가도 막지 않는다</strong>(버튼 문구가 &ldquo;5개로 시작하기&rdquo; → &ldquo;건너뛰기&rdquo;로 바뀔 뿐)</li>
+          <li><strong>목록 아래에 두 개의 출구</strong> &mdash; &ldquo;다른 것 찾아보기&rdquo;(카탈로그 159종 전체)와 &ldquo;직접 추가하기&rdquo;(목록에 없는 것). 추천만 강요하지 않는다</li>
+          <li><s style="color:var(--ink-3)">홈 화면 추가 안내</s> &mdash; <strong>만들지 않는다.</strong> PWA를 배포하지 않기로 했으므로 이 화면은 존재 이유가 사라졌다. 온보딩은 <strong>4단계</strong>다</li>
+          <li><strong>알림 시간 설정</strong> &mdash; 기본 저녁 8시. 등록이 0개여도 이 화면은 그대로 진행한다. 설정을 미리 받아두면 나중에 다시 물을 일이 없다</li>
+        </ol>
+        <div class="note key">
+          <p><strong>시간 설정과 OS 권한 요청을 분리한다.</strong> 온보딩의 &ldquo;언제 알려드릴까요?&rdquo;는 <em>앱 안의 설정</em>일 뿐이고, 실제 시스템 알림 권한 팝업은 <strong>첫 등록 직후</strong>에 띄운다. 등록이 0개인 상태에서 권한을 요구하면 &mdash; 알릴 것도 없는데 &mdash; 거절률이 올라가고, iOS는 한 번 거절하면 설정 앱까지 들어가야 해서 회복이 어렵다. &ldquo;이제 알림이 갈 일이 생겼다&rdquo;는 맥락에서 물어야 승낙률이 높다.</p>
+        </div>
+
+        <div class="note">
+          <p><strong>강요하지 않는다.</strong> 추천 목록은 출발점이지 정답이 아니다. 사용자가 3개만 고르고 넘어가려 해도 <strong>막지 않는다</strong> &mdash; 짧은 주기 품목이 하나도 없을 때만 한 번 권하고, 그래도 넘어가면 그대로 보낸다. 억지로 5개를 채운 사용자보다 첫 알림을 좋게 겪고 <em>스스로</em> 추가한 사용자가 훨씬 오래 남는다. 추가 유도는 온보딩이 아니라 <strong>첫 알림 이후</strong>에 한다.</p>
+        </div>
+
+      </section>
+
+      <!-- 06 -->
+      <section id="s6">
+        <div class="sec-head"><span class="sec-num">06</span><h2 class="sec-title">데이터 · 기술 · 비용</h2></div>
+        <div class="sec-rule"></div>
+
+        <h3>기술 스택</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>영역</th><th>선택</th><th>비용</th><th>이유</th></tr></thead>
+            <tbody>
+              <tr><td>Frontend</td><td>React + TypeScript + Vite</td><td class="n">$0</td><td>로직을 네이티브 전환 시 재사용</td></tr>
+              <tr><td>PWA</td><td>Workbox + Web App Manifest</td><td class="n">$0</td><td>홈 화면 설치가 iOS 푸시의 전제 조건</td></tr>
+              <tr><td>호스팅</td><td>Cloudflare Pages</td><td class="n">$0</td><td>무료 한도로 충분</td></tr>
+              <tr><td>백엔드 · DB</td><td>Supabase (Postgres + Storage)</td><td class="n">$0</td><td>무료 티어에 인증·DB·파일 저장·크론 포함</td></tr>
+              <tr><td>알림</td><td>Web Push (VAPID 자체 발송)</td><td class="n">$0</td><td>외부 푸시 서비스 불필요</td></tr>
+              <tr><td>스케줄러</td><td>Supabase Cron (하루 1회 배치)</td><td class="n">$0</td><td>매일 정해진 시각에 대상자 조회 후 발송</td></tr>
+              <tr><td>AI</td><td><strong>사용하지 않음</strong></td><td class="n">$0</td><td>카탈로그 조회와 날짜 계산만으로 전 기능이 동작한다</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>AI를 쓰지 않는다</h3>
+        <p>v0.3까지는 라벨 인식에 Gemini를 등록당 1회 호출하는 설계였다. 필터류를 제외하면서 <strong>AI가 필요한 지점이 전부 사라졌다.</strong> 남은 판단은 모두 결정적(deterministic) 계산이다.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>기능</th><th>구현</th></tr></thead>
+            <tbody>
+              <tr><td>권장 주기 제시</td><td>카탈로그 테이블 조회</td></tr>
+              <tr><td>D-day 산출</td><td><code>base_date + cycle_days - today</code></td></tr>
+              <tr><td>주기 자기교정</td><td>최근 3회 교체 간격의 <strong>중앙값</strong></td></tr>
+              <tr><td>계절 판단</td><td><code>season</code> 필드와 현재 월 비교</td></tr>
+              <tr><td>알림 묶음</td><td>사용자별 <code>GROUP BY</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>규모</th><th>DB · 인증</th><th>호스팅</th><th>푸시</th><th>합계</th></tr></thead>
+            <tbody>
+              <tr><td>100명</td><td class="n">$0</td><td class="n">$0</td><td class="n">$0</td><td class="n"><strong>월 $0</strong></td></tr>
+              <tr><td>1,000명</td><td class="n">$0</td><td class="n">$0</td><td class="n">$0</td><td class="n"><strong>월 $0</strong></td></tr>
+              <tr><td>10,000명</td><td class="n">$25</td><td class="n">$0</td><td class="n">$0</td><td class="n">월 $25</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note key">
+          <p><strong>사진을 저장하지 않으므로 스토리지 압박이 없다.</strong> 한 사용자의 데이터는 품목 20~30행과 교체 이력 수백 행이 전부로, 수십 KB 수준이다. Supabase 무료 티어(500MB DB · 5만 MAU)로 <strong>1,000명까지 여유 있게 들어간다.</strong> 유료 전환은 만 명 단위에서야 발생한다.</p>
+        </div>
+
+        <h3>데이터 모델</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>비고</th></tr></thead>
+            <tbody>
+              <tr><td>users</td><td>id, auth_provider, created_at</td><td>&mdash;</td></tr>
+              <tr><td>user_settings</td><td>user_id, notify_at, timezone, dormant_until</td><td>알림 시간·휴면</td></tr>
+              <tr><td>catalog</td><td>code, name, zone, <strong>metric</strong>, default_cycle_days, cycle_usage, unit, <strong>input_type</strong>, season, safety_locked, <strong>onboarding_pick</strong></td><td><strong>프리셋 159종 (작성 완료).</strong> <code>input_type</code>은 <code>list</code>/<code>pao</code>, <code>season</code>은 시즌 밖 정지, <code>safety_locked</code>는 자기교정 제외, <code>onboarding_pick</code>은 온보딩 기본 체크 대상</td></tr>
+              <tr><td>items</td><td>id, user_id, catalog_code, custom_name, zone, cycle_days, base_date, <strong>base_usage</strong>, next_due, <strong>group_count</strong>, status</td><td>사용자가 등록한 물건. <code>status</code>는 <code>active</code>/<code>paused</code>(시즌 밖)/<code>archived</code>(이제 안 씀)</td></tr>
+              <tr><td>item_events</td><td>id, item_id, type(<code>replaced</code>/<code>snoozed</code>/<code>still_good</code>/<code>ignored</code>), at</td><td><strong>교체 이력.</strong> 자기교정의 원천</td></tr>
+              <tr><td>notifications</td><td>id, user_id, item_ids[], sent_at, responded_at, response</td><td>묶음 발송 단위. 응답률 측정</td></tr>
+              <tr><td>push_subscriptions</td><td>user_id, endpoint, keys, platform</td><td>기기별 구독 정보</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>알림 발송 구조</h3>
+        <pre><span class="c">// 매일 5분 간격 배치 — 사용자별 알림 시각에 맞춰 발송</span>
+<span class="k">SELECT</span> u.id, array_agg(i.id)
+<span class="k">FROM</span> items i <span class="k">JOIN</span> user_settings u <span class="k">ON</span> ...
+<span class="k">WHERE</span> i.next_due &lt;= today
+  <span class="k">AND</span> i.status = <span class="s">'active'</span>
+  <span class="k">AND</span> u.notify_at = current_slot        <span class="c">// 사용자가 정한 시각</span>
+  <span class="k">AND</span> (u.dormant_until <span class="k">IS NULL OR</span> u.dormant_until &lt; today)
+<span class="k">GROUP BY</span> u.id                            <span class="c">// ← 사용자당 1건으로 묶음</span></pre>
+
+        <h3>PWA에서 네이티브로</h3>
+        <ul>
+          <li><strong>레이어 분리</strong> &mdash; <code>core/</code>(주기 계산 · 자기교정 · 계절 판단 · 카탈로그)를 부수효과 없는 순수 함수로 짠다. Swift · Kotlin으로 <em>이식</em>할 것이므로 그대로 옮겨지지는 않지만, <strong>테스트 케이스가 그대로 이식 명세가 된다.</strong> 같은 입력에 같은 출력이 나오면 이식이 끝난 것이다.</li>
+          <li><strong>Capacitor 단계는 건너뛴다</strong> &mdash; PWA를 배포하지 않으므로 중간 래핑의 이득이 없다. PWA는 <em>로직과 화면 흐름을 빠르게 검증하는 도구</em>이고, 배포본은 처음부터 네이티브로 만든다.</li>
+          <li><strong>네이티브에서만 되는 것</strong> &mdash; 홈 위젯(오늘 바꿀 것), 잠금화면 알림 액션, 정확한 예약 알림, 바코드 스캔.</li>
+        </ul>
+      </section>
+
+      <!-- 07 -->
+      <section id="s7">
+        <div class="sec-head"><span class="sec-num">07</span><h2 class="sec-title">MVP · 로드맵</h2></div>
+        <div class="sec-rule"></div>
+
+        <h3>MVP 정의</h3>
+        <p>검증 질문은 하나다 &mdash; <strong>&ldquo;알림을 받은 사람이 실제로 물건을 바꾸고, 앱에 답하는가?&rdquo;</strong> 여기에 답하지 않는 기능은 전부 뒤로 민다.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>기능</th><th>MVP</th><th>판단 근거</th></tr></thead>
+            <tbody>
+              <tr><td>프리셋 목록 등록 (159종)</td><td><span class="pill in">포함</span></td><td><strong>카탈로그 작성 완료.</strong> 등록의 80%가 여기서 일어난다</td></tr>
+              <tr><td>개봉일 기준 등록 (32종)</td><td><span class="pill in">포함</span></td><td>화장품·영양제. 탭 2회로 끝나 카메라가 필요 없다</td></tr>
+              <tr><td>D-day 홈 · 상태 3색</td><td><span class="pill in">포함</span></td><td>한눈에 보이는 것이 첫 만족</td></tr>
+              <tr><td>푸시 알림 + 묶음 발송</td><td><span class="pill in">포함</span></td><td>이게 없으면 앱이 아니다</td></tr>
+              <tr><td>알림 응답 · 기준일 재설정</td><td><span class="pill in">포함</span></td><td>루프의 마지막 고리</td></tr>
+              <tr><td>PWA 설치 유도</td><td><span class="pill out">제외</span></td><td>PWA를 배포하지 않으므로 불필요</td></tr>
+              <tr><td>주기 자기교정 (3회 이상)</td><td><span class="pill out">제외</span></td><td>MVP 기간에 3회 응답이 쌓이지 않는다</td></tr>
+              <tr><td>필터류 (정수기·공기청정기·에어컨)</td><td><span class="pill out">범위 밖</span></td><td>경쟁 앱이 이미 차지한 영역. 되돌리지 않는다</td></tr>
+              <tr><td>차량 (엔진오일·와이퍼)</td><td><span class="pill out">범위 밖</span></td><td>사용량 기준이라 구조가 다르다</td></tr>
+              <tr><td>라벨 촬영 · 사진 저장 · AI</td><td><span class="pill out">제외</span></td><td>필터가 빠지면서 필요 지점이 사라졌다</td></tr>
+              <tr><td>가족 공유 · 사용량 기준(렌즈·러닝화)</td><td><span class="pill out">제외</span></td><td>핵심 루프 검증 후</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>단계별 계획</h3>
+        <div class="phase">
+          <div class="when"><b>Phase -1</b>2주</div>
+          <div>
+            <h4>수요 검증 &mdash; 코드를 쓰기 전에</h4>
+            <ul>
+              <li><strong>지인 10명 인터뷰</strong> &mdash; &ldquo;수세미 마지막으로 언제 바꾸셨어요?&rdquo; 대부분 모른다. 진짜 질문은 그다음이다 &mdash; <strong>&ldquo;그래서 불편하세요?&rdquo;</strong> 여기서 &ldquo;별로요&rdquo;가 많이 나오면 수요가 약한 것이다</li>
+              <li><strong>랜딩 페이지 1장 + 대기자 이메일 수집</strong> &mdash; 자취 · 살림 커뮤니티에 올려 일주일간 반응 측정</li>
+              <li><strong>경쟁 앱(교체알리미)을 직접 설치해 2주 사용</strong> &mdash; 등록이 얼마나 귀찮은지, 알림이 어떤지 몸으로 확인한다. 경쟁자를 쓰는 것이 가장 빠른 학습이다</li>
+              <li><strong>관문</strong> &mdash; &ldquo;불편하다&rdquo; 응답 10명 중 6명 이상, 대기자 이메일 30건 이상. <strong>미달이면 여기서 멈춘다</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="when"><b>Phase 0</b>2주</div>
+          <div>
+            <h4>카탈로그와 등록 흐름</h4>
+            <ul>
+              <li><s style="color:var(--ink-3)">프리셋 카탈로그 작성</s> &mdash; <strong>159종 완료</strong> (스프레드시트 + JSON 시드)</li>
+              <li><s style="color:var(--ink-3)">와이어프레임 · 온보딩 문구</s> &mdash; <strong>완료</strong> (별도 문서)</li>
+              <li>등록 화면 프로토타입 구현</li>
+              <li><strong>관문</strong> &mdash; 지인 5명에게 쥐여주고 <strong>5개 등록에 3분 이내</strong>가 나오는지 측정. 여기서 실패하면 나머지는 무의미하다</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="when"><b>Phase 1</b>6~8주</div>
+          <div>
+            <h4>MVP 출시 (PWA)</h4>
+            <ul>
+              <li>3탭 완성, 계정·동기화, 사진 저장, 푸시 알림 파이프라인</li>
+              <li>온보딩(구역 선택 → 추천 목록 + 전체 카탈로그 → iOS만 설치 유도)</li>
+              <li>클로즈드 베타 30명 → <strong>첫 알림 도달까지 최소 3주</strong>는 지켜봐야 데이터가 나온다</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="when"><b>Phase 2</b>+4~6주</div>
+          <div>
+            <h4>정확도와 공유</h4>
+            <ul>
+              <li>주기 자기교정 활성화, 응답 데이터로 카탈로그 보정</li>
+              <li>검색 · 직접 품목 추가 (카탈로그에 없는 것)</li>
+              <li>가족 공유 (한 집을 여러 명이 관리)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="when"><b>Phase 3</b>+4주</div>
+          <div>
+            <h4>네이티브 전환</h4>
+            <ul>
+              <li><strong>Swift · Kotlin 네이티브 재작성</strong> &mdash; Capacitor 래핑을 거치지 않고 바로 간다(PWA를 배포하지 않으므로 중간 단계가 필요 없다)</li>
+              <li>착수 전 <strong>APNs · FCM 실기기 검증</strong> &mdash; 알림이 이 앱의 전부이므로 가장 먼저</li>
+              <li><code>core/</code>의 테스트 케이스가 곧 이식 명세가 된다 &mdash; 같은 입력에 같은 결과가 나오는지로 이식 완료를 판정한다</li>
+              <li>홈 위젯(오늘 바꿀 것), 잠금화면 알림 액션, 바코드 스캔</li>
+            </ul>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="when"><b>Phase 4</b>이후</div>
+          <div>
+            <h4>확장</h4>
+            <ul>
+              <li>사용량 기준 주기 &mdash; 렌즈 착용 횟수, 러닝화 주행거리</li>
+              <li>구매 내역 연동 &mdash; 영수증이 &ldquo;바꿨다&rdquo;의 대리 신호가 될 수 있다</li>
+              <li>&ldquo;우리 집 관리 리포트&rdquo; &mdash; 연간 교체 이력과 지출 추정</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 08 -->
+      <section id="s8">
+        <div class="sec-head"><span class="sec-num">08</span><h2 class="sec-title">지표 · 리스크 · 결정사항</h2></div>
+        <div class="sec-rule"></div>
+
+        <h3>성공 지표</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>지표</th><th>정의</th><th>MVP 목표</th></tr></thead>
+            <tbody>
+              <tr><td>빈손 이탈률</td><td>등록 0개로 온보딩을 마친 비율 <span class="pill a">최우선</span></td><td class="n">≤ 20%</td></tr>
+              <tr><td>짧은 주기 포함률</td><td>등록자 중 주기 1개월 이하 품목을 1개 이상 담은 비율</td><td class="n">≥ 80%</td></tr>
+              <tr><td>첫 알림까지 걸린 일수</td><td>가입 → 첫 알림 도달까지</td><td class="n">중앙값 ≤ 14일</td></tr>
+              <tr><td>온보딩 등록 수</td><td>가입 첫날 등록한 품목 개수 (관문 아님)</td><td class="n">중앙값 ≥ 5개</td></tr>
+              <tr><td>첫 알림 도달률</td><td>등록 후 첫 알림까지 구독을 유지한 비율</td><td class="n">≥ 70%</td></tr>
+              <tr><td>알림 응답률</td><td>발송 알림 중 버튼으로 응답한 비율</td><td class="n">≥ 60%</td></tr>
+              <tr><td>4주 리텐션</td><td>4주 뒤에도 알림에 반응하는 사용자</td><td class="n">≥ 50%</td></tr>
+              <tr><td>등록 완주율</td><td>추가 시작 → 저장까지 도달</td><td class="n">≥ 85%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <p><strong>이 앱의 리텐션 목표는 일반 앱보다 높아야 정상이다.</strong> 사용자가 의지로 여는 앱이 아니라 알림이 부르는 앱이기 때문이다. 4주 리텐션이 50% 아래라면 알림이 안 가고 있거나(iOS 설치 실패) 등록이 너무 적은 것이다.</p>
+        </div>
+
+        <h3>리스크와 대응</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>리스크</th><th>영향</th><th>대응</th></tr></thead>
+            <tbody>
+              <tr><td><strong>수요 자체가 약할 가능성</strong> &mdash; 비슷한 앱이 여러 번 시도됐지만 아무도 자리를 잡지 못했다</td><td>치명적</td><td><strong>Phase -1에서 코드를 쓰기 전에 검증한다.</strong> 인터뷰 · 랜딩 페이지 · 경쟁 앱 직접 사용. 관문 미달이면 중단</td></tr>
+              <tr><td><strong>계절 품목 오알림</strong> &mdash; 겨울에 &ldquo;선풍기 청소할 때예요&rdquo;</td><td>치명적</td><td>카탈로그 <code>season</code> 필드로 시즌 밖 카운트 정지. 시즌 시작 시 &ldquo;쓰기 시작하셨어요?&rdquo; 1회 확인 (3장)</td></tr>
+              <tr><td><strong>제품 교체 · 이사 미반영</strong> &mdash; 저장된 모델명과 사진이 거짓이 된다</td><td>높음</td><td>상세의 &ldquo;제품이 바뀌었어요&rdquo;, 설정의 이사 정리 흐름. 재구매 정보가 차별점이므로 방치할 수 없다</td></tr>
+              <tr><td><strong>밀린 항목 폭탄</strong> &mdash; 오랜만에 열었더니 붉은 항목 15개</td><td>높음</td><td>5개 초과 시 배너로 접고 &ldquo;지금부터 다시 셀게요&rdquo; 일괄 리셋 제공 (4장)</td></tr>
+              <tr><td><strong>푸시의 조용한 사망</strong> &mdash; 서버는 성공, 사용자는 못 받음</td><td>높음</td><td>사용자별 응답률 감시. 3회 연속 무응답 시 이메일 폴백 + 재구독 유도 (4장)</td></tr>
+              <tr><td><strong>첫 알림까지의 공백</strong> &mdash; 긴 주기만 등록하면 몇 달간 아무 일도 없다</td><td>치명적</td><td>온보딩에서 짧은 주기 품목(수세미·침구 2주)을 기본 체크. <strong>2주 안에 첫 알림</strong>을 보장한다</td></tr>
+              <tr><td><s style="color:var(--ink-3)">iOS 웹푸시 제약</s></td><td>해소</td><td><strong>PWA를 배포하지 않기로 결정하면서 사라졌다.</strong> 개발 중 알림 테스트는 Android 크롬으로 한다 &mdash; 설치 없이 Web Push가 동작한다. 실제 푸시는 네이티브의 FCM/APNs로 간다</td></tr>
+              <tr><td><strong>등록 0개로 온보딩 종료</strong> &mdash; 알림을 보낼 방법이 없어진다</td><td>높음</td><td>막지 않는 대신 홈을 추천 화면으로 만든다. 이 비율이 20%를 넘으면 추천 화면 자체를 다시 설계한다</td></tr>
+              <tr><td>짧은 주기 품목 없이 등록 완료</td><td>중간</td><td>첫 알림이 몇 달 뒤가 되어 앱을 잊는다. 추천 목록에서 짧은 주기 품목을 상단·기본 체크. 하나도 없으면 한 번만 권하고 막지는 않는다</td></tr>
+              <tr><td>알림 무시 누적 → 삭제</td><td>높음</td><td>하루 1건 묶음 발송, 시간대 개인화, 3회 연속 무시 시 해당 품목 조용히 보관</td></tr>
+              <tr><td>카탈로그 주기가 부정확</td><td>중간</td><td>159종 수동 큐레이션 완료, 근거 열에 출처 기재. 응답 데이터로 지속 보정</td></tr>
+              <tr><td><strong>카탈로그 주기가 내 제품과 다름</strong></td><td>중간</td><td>상세 화면에서 주기를 직접 수정 가능. 제조사 권장값이 있으면 그것이 우선임을 명시</td></tr>
+                            <tr><td>안전 품목 오안내</td><td>낮으나 민감</td><td>화재감지기·소화기 등은 자기교정 제외, 권장 주기 고수, 참고용임을 명시</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>수익 모델 후보</h3>
+        <ul>
+          <li><strong>재구매 제휴</strong> (Phase 3~) &mdash; 알림을 받은 사용자는 이미 &ldquo;사야 하는 상태&rdquo;라 전환율이 높다. 품목명 기반 검색 연결부터 시작하면 되고, 앱 경험을 해치지 않는 가장 자연스러운 경로다.</li>
+          <li><strong>무료 한도 + 구독</strong> &mdash; 무료 20개 품목, 이상은 월 구독. 다만 등록을 늘려야 하는 앱에서 등록에 한도를 거는 건 자기모순이라 신중해야 한다.</li>
+          <li><strong>완전 무료 유지</strong> &mdash; 100명 규모에서 월 $0~2라 개인 프로젝트로는 부담이 없다. 수익화는 사용자가 생긴 뒤에 결정해도 된다.</li>
+        </ul>
+
+        <h3>확정이 필요한 결정사항</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>항목</th><th>선택지</th><th>필요 시점</th></tr></thead>
+            <tbody>
+              <tr><td>서비스명</td><td>&lsquo;제때&rsquo;는 가칭. 상표·검색 가능성 검토</td><td>Phase 1 착수 전</td></tr>
+              <tr><td>카탈로그 구축 방식</td><td>전량 수동 큐레이션 / AI 초안 + 수동 검수</td><td>Phase 0 착수 시</td></tr>
+              <tr><td>사진 보관 정책</td><td>무기한 / 교체 후 1주기까지 / 사용자 선택</td><td>Phase 1 착수 전</td></tr>
+              <tr><td>알림 기본 시각</td><td>저녁 8시 고정 / 온보딩에서 필수 선택</td><td>Phase 1 중반</td></tr>
+              <tr><td>수익 모델</td><td>제휴 / 구독 / 무료 유지</td><td>Phase 2 종료</td></tr>
+              <tr><td>네이티브 전환 시점</td><td>iOS 설치율이 목표 미달이면 앞당김</td><td>Phase 1 종료</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>다음 액션</h3>
+        <ol>
+          <li>Supabase 스키마 생성 + 카탈로그 JSON 시드 주입</li>
+          <li>등록 화면 구현 &mdash; <strong>5개 등록 3분</strong>이 통과 기준</li>
+          <li>알림 배치 잡 &mdash; 대상자 조회와 묶음 로직이 핵심이고, <strong>전송 채널(Web Push → FCM/APNs)은 갈아끼울 수 있게</strong> 인터페이스 뒤에 둔다</li>
+          <li>라벨 인식 프롬프트 v1 작성 후 실제 라벨 30장으로 정확도 측정</li>
+          <li>등록 화면 와이어프레임 확정 &mdash; <strong>5개 등록 3분</strong>이 통과 기준</li>
+          <li>iOS PWA 푸시 실기기 검증 (설치 유도 문구·설치율 측정 포함)</li>
+          <li>Supabase 스키마와 알림 배치 쿼리 초안</li>
+        </ol>
+      </section>
+
+      <footer>제때 (가칭) · 제품 기획서 v0.1 · 2026.09.05 · 교체 주기는 일반 권장값이며 제품·환경에 따라 다르다 · 수치와 일정은 Phase 0 결과에 따라 조정한다</footer>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

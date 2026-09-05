@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="제때 앱의 온보딩·주요 화면 와이어프레임과 확정 문구.">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0; font:14px system-ui, sans-serif}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>제때 화면 설계</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#EAEEF0; --surface:#FAFBFC; --surface-2:#DDE4E8;
+    --ink:#141A1E; --ink-2:#3A464E; --ink-3:#6C7A82;
+    --line:#C6D0D6; --line-soft:#D9E1E5;
+    --accent:#1B5C71; --accent-soft:#D3E3E9;
+    --ok:#2C7A57; --ok-soft:#D5E9DF;
+    --soon:#B26810; --soon-soft:#F6E5CC;
+    --over:#A33A2B; --over-soft:#F6DBD6;
+    --f:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+    --m:"JetBrains Mono",ui-monospace,Menlo,monospace;
+    --shadow:0 2px 4px rgba(20,26,30,.04), 0 12px 28px -18px rgba(20,26,30,.4);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0D1316; --surface:#151D20; --surface-2:#1D272C;
+      --ink:#E5EDF1; --ink-2:#AEBEC6; --ink-3:#7A8A93;
+      --line:#2A373D; --line-soft:#202B30;
+      --accent:#57AFC7; --accent-soft:#122F3A;
+      --ok:#5BBE90; --ok-soft:#123024;
+      --soon:#DDA045; --soon-soft:#33260F;
+      --over:#E2705C; --over-soft:#361B16;
+      --shadow:0 2px 4px rgba(0,0,0,.3), 0 12px 30px -18px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0D1316; --surface:#151D20; --surface-2:#1D272C;
+    --ink:#E5EDF1; --ink-2:#AEBEC6; --ink-3:#7A8A93;
+    --line:#2A373D; --line-soft:#202B30;
+    --accent:#57AFC7; --accent-soft:#122F3A;
+    --ok:#5BBE90; --ok-soft:#123024;
+    --soon:#DDA045; --soon-soft:#33260F;
+    --over:#E2705C; --over-soft:#361B16;
+    --shadow:0 2px 4px rgba(0,0,0,.3), 0 12px 30px -18px rgba(0,0,0,.9);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--paper); color:var(--ink); font-family:var(--f); font-size:15px; line-height:1.7}
+  ::selection{background:var(--accent-soft)}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 26px 100px}
+
+  header.top{padding:56px 0 30px; border-bottom:3px solid var(--ink); margin-bottom:44px}
+  .tags{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px}
+  .tg{font-family:var(--m); font-size:10.5px; letter-spacing:.05em; background:var(--accent); color:var(--paper); padding:3px 9px; border-radius:2px}
+  .tg.b{background:transparent; color:var(--ink-3); border:1px solid var(--line)}
+  h1{font-weight:800; letter-spacing:-.03em; font-size:clamp(34px,5.5vw,54px); line-height:1.06; margin:0}
+  .lede{font-size:clamp(15px,1.9vw,18px); color:var(--ink-2); max-width:40em; margin:16px 0 0}
+
+  section{margin-bottom:70px}
+  .sh{display:flex; align-items:center; gap:11px; margin-bottom:8px}
+  .sn{font-family:var(--m); font-size:11px; background:var(--ink); color:var(--paper); padding:4px 8px; border-radius:2px}
+  h2{font-weight:800; font-size:clamp(22px,3vw,28px); margin:0; letter-spacing:-.025em}
+  .rule{height:3px; background:var(--ink); margin:14px 0 22px}
+  h3{font-weight:700; font-size:17px; margin:34px 0 12px; letter-spacing:-.02em}
+  p{margin:0 0 14px; max-width:66ch; color:var(--ink-2)}
+  p.lead{color:var(--ink)}
+  strong{font-weight:700; color:var(--ink)}
+  code{font-family:var(--m); font-size:.85em; background:var(--surface-2); padding:1px 5px; border-radius:2px}
+
+  .note{border-left:4px solid var(--accent); background:var(--accent-soft); padding:15px 18px; margin:20px 0}
+  .note p{margin:0; max-width:62ch; font-size:14.5px; color:var(--ink-2)}
+  .note.warn{border-left-color:var(--over); background:var(--over-soft)}
+  .note.key{border-left-color:var(--soon); background:var(--soon-soft)}
+
+  /* ---------- phone ---------- */
+  .screens{display:grid; grid-template-columns:repeat(auto-fill,minmax(258px,1fr)); gap:26px 22px; margin:24px 0}
+  .sc{display:flex; flex-direction:column}
+  .ph{
+    border:1px solid var(--line); border-radius:16px; background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;
+    min-height:430px;
+  }
+  .ph .sb{display:flex; justify-content:space-between; padding:8px 14px 6px; font-family:var(--m); font-size:9px; color:var(--ink-3)}
+  .ph .bd{padding:6px 15px 15px; flex:1; display:flex; flex-direction:column; gap:9px}
+  .ph .tb{display:flex; border-top:1px solid var(--line-soft); background:var(--surface-2)}
+  .ph .tb div{flex:1; text-align:center; padding:8px 0; font-size:9.5px; color:var(--ink-3)}
+  .ph .tb div.on{color:var(--accent); font-weight:700}
+  .ph .tb div.plus{color:var(--paper); background:var(--accent); font-weight:700; font-size:13px; flex:0 0 46px; display:grid; place-items:center}
+
+  .cap{padding:9px 2px 0}
+  .cap b{display:block; font-size:13px; font-weight:700; margin-bottom:2px}
+  .cap span{font-size:11.5px; color:var(--ink-3); line-height:1.55; display:block}
+  .stepno{font-family:var(--m); font-size:10px; color:var(--accent); letter-spacing:.08em; display:block; margin-bottom:3px}
+
+  /* in-phone bits */
+  .h1s{font-size:17px; font-weight:800; letter-spacing:-.03em; line-height:1.3; margin-top:14px}
+  .h2s{font-size:12px; color:var(--ink-3); line-height:1.5}
+  .btn{background:var(--accent); color:var(--paper); text-align:center; padding:9px; border-radius:4px; font-size:12.5px; font-weight:700; margin-top:auto}
+  .btn.gh{background:transparent; color:var(--ink-3); font-weight:400; padding:6px; margin-top:6px; font-size:11.5px}
+  .btn.sm{margin-top:0}
+  .opt{border:1px solid var(--line); border-radius:4px; padding:9px 11px; font-size:12.5px; display:flex; justify-content:space-between; align-items:center}
+  .opt.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:700}
+  .chk{display:flex; gap:8px; align-items:flex-start; padding:7px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px}
+  .chk .bx{width:15px; height:15px; border:1.5px solid var(--line); border-radius:3px; flex:none; margin-top:2px}
+  .chk .bx.on{background:var(--accent); border-color:var(--accent); color:var(--paper); font-size:10px; display:grid; place-items:center; line-height:1}
+  .chk .cy{margin-left:auto; font-family:var(--m); font-size:10.5px; color:var(--ink-3); white-space:nowrap}
+  .chk b{font-weight:500}
+
+  .qr{border:1px solid var(--line-soft); background:var(--surface-2); border-radius:5px; padding:10px 11px}
+  .qr .lb{font-size:11px; color:var(--ink-3); margin-bottom:7px}
+  .qchips{display:flex; gap:5px; flex-wrap:wrap}
+  .qc{font-family:var(--m); font-size:10px; border:1px solid var(--accent); color:var(--accent); background:var(--surface); border-radius:14px; padding:3px 9px}
+  .qc.g{border-color:var(--line); color:var(--ink-3)}
+
+  .row{display:grid; grid-template-columns:4px 1fr auto; border-bottom:1px solid var(--line-soft); align-items:center}
+  .row .st{align-self:stretch; border-radius:2px}
+  .row .tx{padding:9px 11px}
+  .row .nm{font-size:13px; font-weight:700; letter-spacing:-.01em}
+  .row .sub{font-size:10.5px; color:var(--ink-3)}
+  .row .dd{font-family:var(--m); font-size:11.5px; padding-right:4px; white-space:nowrap; font-weight:500}
+
+  .banner{border:1px solid var(--over); background:var(--over-soft); border-radius:5px; padding:10px 12px; font-size:12px; color:var(--over); font-weight:700; display:flex; justify-content:space-between; align-items:center}
+
+  .push{border:1px solid var(--line); background:var(--surface-2); border-radius:9px; padding:11px 12px; margin-top:auto}
+  .push .ap{font-family:var(--m); font-size:9px; color:var(--ink-3); margin-bottom:5px; display:flex; gap:6px}
+  .push .t{font-size:13px; font-weight:700; margin-bottom:2px}
+  .push .b{font-size:11.5px; color:var(--ink-2); margin-bottom:9px; line-height:1.5}
+  .pbtns{display:flex; gap:6px}
+  .pb{flex:1; text-align:center; font-size:11.5px; font-weight:700; padding:6px; border-radius:4px; border:1px solid var(--accent); color:var(--accent)}
+  .pb.p{background:var(--accent); color:var(--paper)}
+
+  .empty{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; padding:20px 10px}
+  .empty .ic{font-size:26px; opacity:.4}
+  .empty .t{font-size:13.5px; font-weight:700}
+  .empty .s{font-size:11.5px; color:var(--ink-3); line-height:1.55}
+
+  .det{display:flex; flex-direction:column; gap:8px}
+  .kv{display:flex; justify-content:space-between; font-size:12px; padding:6px 0; border-bottom:1px solid var(--line-soft)}
+  .kv span:first-child{color:var(--ink-3)}
+  .kv span:last-child{font-family:var(--m); font-size:11.5px}
+
+  /* ---------- tables ---------- */
+  .tw{overflow-x:auto; margin:20px 0; border:1px solid var(--line-soft); background:var(--surface)}
+  table{width:100%; border-collapse:collapse; font-size:13.6px; min-width:560px}
+  th{text-align:left; font-family:var(--m); font-weight:400; font-size:10px; letter-spacing:.09em; color:var(--ink-3); padding:11px 15px; border-bottom:2px solid var(--line); white-space:nowrap}
+  td{padding:11px 15px; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--ink-2)}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--ink); font-weight:500; white-space:nowrap}
+  td.q{color:var(--ink); font-weight:500}
+  .bad{color:var(--over); text-decoration:line-through; opacity:.75}
+  .good{color:var(--ok); font-weight:700}
+
+  ul{margin:0 0 16px; padding-left:19px; max-width:66ch; color:var(--ink-2)}
+  li{margin-bottom:6px}
+  li::marker{color:var(--ink-3)}
+
+  footer{border-top:1px solid var(--line); padding:22px 0 60px; color:var(--ink-3); font-family:var(--m); font-size:11px}
+
+  @media (max-width:640px){ .wrap{padding:0 16px 70px} }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="tags">
+      <span class="tg">화면 설계 v0.1</span>
+      <span class="tg b">제때</span>
+      <span class="tg b">필터 · 차량 · AI 제외</span>
+      <span class="tg b">카탈로그 159종</span>
+      <span class="tg b">2026.09.05</span>
+    </div>
+    <h1>제때 화면 설계</h1>
+    <p class="lede">온보딩 5화면과 주요 8화면의 와이어프레임, 그리고 화면에 실제로 들어갈 문구. 회색 박스가 아니라 <strong>확정된 카피가 들어간 상태</strong>로 그렸으므로, 그대로 옮겨 쓰면 된다.</p>
+  </header>
+
+  <!-- ===== 01 온보딩 ===== -->
+  <section>
+    <div class="sh"><span class="sn">01</span><h2>온보딩 &mdash; 5화면</h2></div>
+    <div class="rule"></div>
+    <p class="lead">온보딩이 달성해야 하는 것은 딱 두 가지다. <strong>등록 5개</strong>와 <strong>짧은 주기 품목 1개 이상.</strong> 나머지는 전부 이 둘을 위한 장치다.</p>
+
+    <div class="screens">
+
+      <!-- 1 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div style="font-size:34px; margin-top:34px">🪥</div>
+            <div class="h1s">바꿔야 할 때<br>제가 알려드릴게요</div>
+            <div class="h2s">칫솔 3개월, 수세미 한 달.<br>알지만 아무도 세지 않죠.</div>
+            <div class="btn">다음</div>
+          </div>
+        </div>
+        <div class="cap"><span class="stepno">STEP 1 / 5</span><b>가치 제안 ①</b><span>문제를 먼저 말한다. 기능 설명은 하지 않는다</span></div>
+      </div>
+
+      <!-- 2 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div style="font-size:34px; margin-top:34px">🔔</div>
+            <div class="h1s">등록은 한 번<br>그다음은 잊으셔도 돼요</div>
+            <div class="h2s">때가 되면 알림이 갑니다.<br>바꾸셨으면 탭 한 번이면 끝.</div>
+            <div class="btn">시작하기</div>
+          </div>
+        </div>
+        <div class="cap"><span class="stepno">STEP 2 / 5</span><b>가치 제안 ②</b><span>&ldquo;잊어도 된다&rdquo;가 이 앱의 약속이다</span></div>
+      </div>
+
+      <!-- 3 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div class="h1s" style="margin-top:8px">집에 어떤 공간이<br>있나요?</div>
+            <div class="h2s" style="margin-bottom:4px">고른 곳의 물건만 보여드릴게요</div>
+            <div class="opt on">욕실 <span>✓</span></div>
+            <div class="opt on">주방 <span>✓</span></div>
+            <div class="opt on">침실 <span>✓</span></div>
+            <div class="opt">거실</div>
+            <div class="opt">세탁실</div>
+            <div class="btn">다음</div>
+          </div>
+        </div>
+        <div class="cap"><span class="stepno">STEP 3 / 5</span><b>구역 선택</b><span>159종을 다 보여주지 않기 위한 필터. 복수 선택, 기본 3개 체크</span></div>
+      </div>
+
+      <!-- 4 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div class="h1s" style="margin-top:6px">이런 것들,<br>챙기고 계세요?</div>
+            <div class="h2s" style="margin-bottom:2px">체크한 것부터 시작할게요</div>
+            <div class="chk"><span class="bx on">✓</span><b>수세미</b><span class="cy">한 달</span></div>
+            <div class="chk"><span class="bx on">✓</span><b>침구 세탁</b><span class="cy">2주</span></div>
+            <div class="chk"><span class="bx on">✓</span><b>행주</b><span class="cy">한 달</span></div>
+            <div class="chk"><span class="bx on">✓</span><b>칫솔</b><span class="cy">3개월</span></div>
+            <div class="chk"><span class="bx on">✓</span><b>렌즈 케이스</b><span class="cy">3개월</span></div>
+            <div class="chk"><span class="bx"></span><b>고무장갑</b><span class="cy">한 달</span></div>
+            <div style="display:flex; gap:6px; margin-top:8px">
+              <span class="qc" style="flex:1; text-align:center; padding:6px">다른 것 찾아보기</span>
+              <span class="qc g" style="flex:1; text-align:center; padding:6px">직접 추가하기</span>
+            </div>
+            <div class="btn">5개로 시작하기</div>
+            <div class="btn gh">그냥 넘어갈게요</div>
+          </div>
+        </div>
+        <div class="cap"><span class="stepno">STEP 4 / 5</span><b>추천 등록 &mdash; 가장 중요한 화면</b><span>짧은 주기 품목이 위에, 기본 체크. <strong>통과 조건은 없다</strong> &mdash; 전부 해제하고 그냥 넘어가도 막지 않는다. 전체 카탈로그 159종과 직접 추가로 나가는 출구도 목록 아래에 있다</span></div>
+      </div>
+
+      <!-- 5 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div style="font-size:30px; margin-top:26px">📲</div>
+            <div class="h1s">홈 화면에<br>추가해주세요</div>
+            <div class="h2s">알림을 받으려면 꼭 필요해요.<br>안 하면 알려드릴 방법이 없어요.</div>
+            <div class="qr" style="margin-top:4px">
+              <div class="lb">아이폰 기준</div>
+              <div style="font-size:11.5px; color:var(--ink-2); line-height:1.7">아래 <b>공유 버튼</b> → <b>홈 화면에 추가</b></div>
+            </div>
+            <div class="btn">추가했어요</div>
+            <div class="btn gh">나중에 할게요</div>
+          </div>
+        </div>
+        <div class="cap"><span class="stepno">STEP 5 / 5 &mdash; iOS 전용</span><b>홈 화면 추가</b><span>PWA라서 생기는 단계다. iOS는 이걸 안 하면 푸시가 아예 안 간다. <strong>Android는 건너뛴다</strong> &mdash; 설치 없이도 푸시가 가므로 4단계로 끝난다. 네이티브 전환(Phase 3) 시 이 화면은 사라진다</span></div>
+      </div>
+
+      <!-- 6 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div class="h1s" style="margin-top:22px">언제 알려드릴까요?</div>
+            <div class="h2s">집에 있을 시간이 좋아요.<br>바로 바꿀 수 있으니까요.</div>
+            <div class="opt on" style="justify-content:center; font-family:var(--m); font-size:20px; padding:16px">오후 8:00</div>
+            <div style="font-size:10.5px; color:var(--ink-3); text-align:center">하루 한 번, 묶어서 보내드려요</div>
+            <div class="btn">완료</div>
+          </div>
+        </div>
+        <div class="cap"><span class="stepno">STEP 5 &mdash; 마무리</span><b>알림 시간</b><span>기본 저녁 8시. 등록이 0개여도 이 화면은 그대로 진행한다. <strong>여기서 정하는 건 앱 안의 설정일 뿐이고, OS 알림 권한 팝업은 첫 등록 직후에 띄운다</strong> &mdash; 알릴 게 없는 상태에서 요구하면 거절률이 오른다</span></div>
+      </div>
+
+    </div>
+
+    <div class="note key">
+      <p><strong>통과 조건은 없다.</strong> 하나도 고르지 않고 끝까지 넘어갈 수 있다. 체크박스를 채워야 다음으로 갈 수 있는 온보딩은 <em>가짜 활성화</em>를 만든다 &mdash; 관문을 넘으려고 아무거나 체크한 사용자는 첫 알림이 왔을 때 자기가 뭘 등록했는지도 모른다. 대신 <strong>빈손으로 나간 사용자를 홈에서 다시 만난다.</strong> 등록 0개면 홈이 곧 추천 화면이 되고, 강요가 아니라 두 번째 기회가 된다.</p>
+    </div>
+  </section>
+
+  <!-- ===== 02 주요 화면 ===== -->
+  <section>
+    <div class="sh"><span class="sn">02</span><h2>주요 화면</h2></div>
+    <div class="rule"></div>
+
+    <div class="screens">
+
+      <!-- 홈 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>우리 집 · 14개</span><span>D-DAY 순</span></div>
+          <div class="bd" style="gap:0; padding:6px 12px 0">
+            <div class="qr" style="margin-bottom:10px">
+              <div class="lb">방금 뭐 바꾸셨어요?</div>
+              <div class="qchips"><span class="qc">수세미</span><span class="qc">행주</span><span class="qc">칫솔</span><span class="qc g">+ 다른 거</span></div>
+            </div>
+            <div class="row"><div class="st" style="background:var(--over)"></div><div class="tx"><div class="nm">수세미</div><div class="sub">한 달 주기 · 3주 지남</div></div><div class="dd" style="color:var(--over)">D+7</div></div>
+            <div class="row"><div class="st" style="background:var(--soon)"></div><div class="tx"><div class="nm">침구 세탁</div><div class="sub">2주 주기</div></div><div class="dd" style="color:var(--soon)">D-2</div></div>
+            <div class="row"><div class="st" style="background:var(--soon)"></div><div class="tx"><div class="nm">행주</div><div class="sub">한 달 주기</div></div><div class="dd" style="color:var(--soon)">D-5</div></div>
+            <div class="row"><div class="st" style="background:var(--ok)"></div><div class="tx"><div class="nm">렌즈 케이스</div><div class="sub">3개월 주기</div></div><div class="dd" style="color:var(--ok)">D-28</div></div>
+            <div class="row" style="border-bottom:none"><div class="st" style="background:var(--ok)"></div><div class="tx"><div class="nm">칫솔</div><div class="sub">3개월 주기</div></div><div class="dd" style="color:var(--ok)">D-41</div></div>
+          </div>
+          <div class="tb"><div class="on">홈</div><div class="plus">+</div><div>설정</div></div>
+        </div>
+        <div class="cap"><b>홈</b><span>맨 위가 빠른 기록. 목록은 D-day 순, 상태 3색. 오른쪽으로 밀면 &ldquo;바꿨어요&rdquo;</span></div>
+      </div>
+
+      <!-- 홈 빈 상태 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>우리 집</span><span></span></div>
+          <div class="bd">
+            <div style="margin-top:6px">
+              <div style="font-size:14px; font-weight:700; margin-bottom:3px">뭐부터 챙겨볼까요?</div>
+              <div style="font-size:11.5px; color:var(--ink-3); margin-bottom:8px">탭하면 바로 등록돼요</div>
+            </div>
+            <div class="chk"><span class="bx"></span><b>수세미</b><span class="cy">한 달</span></div>
+            <div class="chk"><span class="bx"></span><b>침구 세탁</b><span class="cy">2주</span></div>
+            <div class="chk"><span class="bx"></span><b>칫솔</b><span class="cy">3개월</span></div>
+            <div class="chk"><span class="bx"></span><b>행주</b><span class="cy">한 달</span></div>
+            <div style="display:flex; gap:6px; margin-top:8px">
+              <span class="qc" style="flex:1; text-align:center; padding:6px">전체 목록</span>
+              <span class="qc g" style="flex:1; text-align:center; padding:6px">직접 추가</span>
+            </div>
+          </div>
+          <div class="tb"><div class="on">홈</div><div class="plus">+</div><div>설정</div></div>
+        </div>
+        <div class="cap"><b>홈 &mdash; 등록 0개</b><span>버튼을 한 번 더 누르게 하지 않는다. <strong>홈이 곧 추천 화면</strong>이다 &mdash; 이 사용자에게는 알림을 보낼 수 없어서, 이 화면이 유일한 접점이다</span></div>
+      </div>
+
+      <!-- 추가 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>← 추가하기</span><span>검색</span></div>
+          <div class="bd" style="gap:0">
+            <div style="font-size:10.5px; color:var(--ink-3); font-family:var(--m); margin:4px 0 8px">주방</div>
+            <div class="chk"><b>수세미</b><span class="cy">한 달</span></div>
+            <div class="chk"><b>행주</b><span class="cy">한 달</span></div>
+            <div class="chk"><b>고무장갑</b><span class="cy">한 달</span></div>
+            <div class="chk"><b>도마</b><span class="cy">1년</span></div>
+            <div class="chk"><b>밀폐용기</b><span class="cy">3개월</span></div>
+            <div style="font-size:10.5px; color:var(--ink-3); font-family:var(--m); margin:12px 0 8px">욕실</div>
+            <div class="chk"><b>칫솔</b><span class="cy">3개월</span></div>
+            <div class="chk"><b>면도날</b><span class="cy">3주</span></div>
+            <div class="btn">3개 담기</div>
+          </div>
+        </div>
+        <div class="cap"><b>추가 &mdash; 목록 선택</b><span>구역별로 묶인 프리셋. 탭하면 담기고, 연속으로 여러 개. 진입점은 언제나 여기</span></div>
+      </div>
+
+      <!-- 개봉일 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>← 선크림</span><span></span></div>
+          <div class="bd">
+            <div class="h1s" style="margin-top:6px">언제 개봉하셨어요?</div>
+            <div class="h2s">개봉한 날부터 세기 시작해요</div>
+            <div class="opt on">오늘 개봉했어요 <span>✓</span></div>
+            <div class="opt">한 달쯤 전</div>
+            <div class="opt">세 달쯤 전</div>
+            <div class="opt">날짜 직접 고르기</div>
+            <div class="qr" style="margin-top:4px">
+              <div class="lb">사용기한</div>
+              <div style="display:flex; gap:5px"><span class="qc">6개월</span><span class="qc" style="background:var(--accent); color:var(--paper)">12개월</span><span class="qc">24개월</span></div>
+              <div style="font-size:10px; color:var(--ink-3); margin-top:7px; line-height:1.5">제품 뒤 <b>6M · 12M</b> 표시를 보고 골라주세요</div>
+            </div>
+            <div class="btn">등록</div>
+          </div>
+        </div>
+        <div class="cap"><b>추가 &mdash; 개봉일 품목</b><span>사진 촬영 대신 버튼 선택. 2탭이면 끝나서 카메라보다 빠르다</span></div>
+      </div>
+
+      <!-- 상세 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>← 수세미</span><span>⋯</span></div>
+          <div class="bd">
+            <div style="text-align:center; padding:14px 0 6px">
+              <div style="font-family:var(--m); font-size:30px; color:var(--over); font-weight:500">D+7</div>
+              <div style="font-size:11.5px; color:var(--ink-3)">3주 지났어요</div>
+            </div>
+            <div class="btn sm">바꿨어요</div>
+            <div style="display:flex; gap:6px; margin-top:6px">
+              <span class="pb" style="flex:1">아직 멀쩡해요</span><span class="pb" style="flex:1">이제 안 써요</span>
+            </div>
+            <div class="det" style="margin-top:10px">
+              <div class="kv"><span>주기</span><span>30일</span></div>
+              <div class="kv"><span>마지막 교체</span><span>2026.08.09</span></div>
+              <div class="kv"><span>다음 예정</span><span>2026.09.08</span></div>
+              <div class="kv"><span>구역</span><span>주방</span></div>
+            </div>
+            <div style="font-size:10.5px; color:var(--ink-3); font-family:var(--m); margin-top:8px">교체 이력 · 4회</div>
+            <div style="font-size:11px; color:var(--ink-2); line-height:1.9">08.09 · 07.05 · 06.02 · 05.01<br><span style="color:var(--ok); font-weight:700">평균 34일</span></div>
+          </div>
+        </div>
+        <div class="cap"><b>상세</b><span>화면 안에서는 세 선택지를 모두 노출한다. <strong>&ldquo;아직 멀쩡해요&rdquo;</strong>는 주기의 30%만큼 미루고, 반복되면 주기 자체를 늘릴지 제안한다</span></div>
+      </div>
+
+      <!-- 알림 -->
+      <div class="sc">
+        <div class="ph" style="background:linear-gradient(160deg,var(--surface-2),var(--surface))">
+          <div class="sb"><span>화 9월 8일</span><span>▮▮▮</span></div>
+          <div class="bd">
+            <div style="text-align:center; font-family:var(--m); font-size:44px; font-weight:500; margin-top:20px; letter-spacing:-.03em">20:00</div>
+            <div class="push">
+              <div class="ap"><span>제때</span><span>·</span><span>지금</span></div>
+              <div class="t">오늘 바꿀 것 3개</div>
+              <div class="b">수세미, 행주, 침구 세탁</div>
+              <div class="pbtns"><span class="pb p">다 바꿨어요</span><span class="pb">앱에서 볼게요</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="cap"><b>알림 &mdash; 묶음</b><span>하루 한 번, 여러 품목은 하나로. 앱을 열지 않고 잠금화면에서 끝난다</span></div>
+      </div>
+
+      <!-- 밀린 항목 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>우리 집 · 14개</span><span></span></div>
+          <div class="bd" style="gap:10px">
+            <div class="banner">밀린 것 12개 <span>›</span></div>
+            <div style="border:1px solid var(--line); border-radius:5px; padding:13px">
+              <div style="font-size:13.5px; font-weight:700; margin-bottom:4px">한 번에 정리할까요?</div>
+              <div style="font-size:11.5px; color:var(--ink-3); line-height:1.6; margin-bottom:11px">언제 바꾸셨는지 안 물어볼게요.<br>오늘부터 다시 세면 됩니다.</div>
+              <div class="btn sm">지금부터 다시 셀게요</div>
+              <div class="btn gh" style="border:1px solid var(--line); border-radius:4px; margin-top:7px; color:var(--ink-2)">하나씩 볼게요</div>
+            </div>
+            <div style="font-size:10.5px; color:var(--ink-3); line-height:1.6">밀린 항목은 목록에서 접어뒀어요</div>
+          </div>
+          <div class="tb"><div class="on">홈</div><div class="plus">+</div><div>설정</div></div>
+        </div>
+        <div class="cap"><b>밀린 항목 폭탄</b><span>붉은 항목 12개를 그대로 보여주면 앱을 지운다. 접고, 자비로운 출구를 크게</span></div>
+      </div>
+
+      <!-- 계절 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>우리 집</span><span></span></div>
+          <div class="bd">
+            <div style="border:1px solid var(--accent); background:var(--accent-soft); border-radius:5px; padding:13px; margin-top:6px">
+              <div style="font-size:22px; margin-bottom:6px">🌀</div>
+              <div style="font-size:13.5px; font-weight:700; margin-bottom:4px">선풍기 꺼내셨어요?</div>
+              <div style="font-size:11.5px; color:var(--ink-2); line-height:1.6; margin-bottom:11px">쓰기 시작하시면 청소 시기를<br>그때부터 세어드릴게요.</div>
+              <div style="display:flex; gap:6px"><span class="pb p" style="flex:1">네, 쓰고 있어요</span><span class="pb" style="flex:1">아직이요</span></div>
+            </div>
+            <div style="font-size:10.5px; color:var(--ink-3); line-height:1.6; margin-top:4px">계절 품목은 시즌 밖에 세지 않아요</div>
+          </div>
+          <div class="tb"><div class="on">홈</div><div class="plus">+</div><div>설정</div></div>
+        </div>
+        <div class="cap"><b>계절 품목 재개</b><span>달력이 아니라 &lsquo;쓰기 시작한 날&rsquo;이 기준. 겨울에 선풍기 알림이 뜨면 신뢰가 끝난다</span></div>
+      </div>
+
+      <!-- 알림 꺼짐 -->
+      <div class="sc">
+        <div class="ph">
+          <div class="sb"><span>우리 집</span><span></span></div>
+          <div class="bd">
+            <div style="border:1px solid var(--over); background:var(--over-soft); border-radius:5px; padding:13px; margin-top:6px">
+              <div style="font-size:13.5px; font-weight:700; margin-bottom:4px; color:var(--over)">알림이 꺼져 있어요</div>
+              <div style="font-size:11.5px; color:var(--ink-2); line-height:1.6; margin-bottom:11px">이 앱은 알림이 전부예요.<br>꺼두면 아무것도 알려드릴 수 없어요.</div>
+              <div class="btn sm" style="background:var(--over)">알림 켜기</div>
+            </div>
+            <div class="row" style="opacity:.45; margin-top:6px"><div class="st" style="background:var(--ink-3)"></div><div class="tx"><div class="nm">수세미</div><div class="sub">한 달 주기</div></div><div class="dd">D+7</div></div>
+            <div class="row" style="opacity:.45"><div class="st" style="background:var(--ink-3)"></div><div class="tx"><div class="nm">침구 세탁</div><div class="sub">2주 주기</div></div><div class="dd">D-2</div></div>
+          </div>
+          <div class="tb"><div class="on">홈</div><div class="plus">+</div><div>설정</div></div>
+        </div>
+        <div class="cap"><b>알림 권한 꺼짐</b><span>조용한 실패를 눈에 보이게 만든다. 목록을 흐리게 처리해 &lsquo;작동하지 않는 상태&rsquo;임을 보인다</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 03 알림 문구 ===== -->
+  <section>
+    <div class="sh"><span class="sn">03</span><h2>알림 문구</h2></div>
+    <div class="rule"></div>
+    <p class="lead">알림이 곧 제품이다. 문구 하나가 응답률을 가르므로 상황별로 미리 확정해둔다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>상황</th><th>제목</th><th>본문</th><th>버튼</th></tr></thead>
+        <tbody>
+          <tr><td>단일 · D-DAY</td><td class="q">수세미 바꿀 때예요</td><td>한 달 됐어요</td><td>바꿨어요 / 아직이요</td></tr>
+          <tr><td>묶음 · D-DAY</td><td class="q">오늘 바꿀 것 3개</td><td>수세미, 행주, 침구 세탁</td><td>다 바꿨어요 / 앱에서 볼게요</td></tr>
+          <tr><td>미리 · D-7</td><td class="q">베개 바꿀 때가 다가와요</td><td>일주일 뒤예요. 미리 봐두시면 좋아요</td><td>알겠어요</td></tr>
+          <tr><td>재알림 · D+3</td><td class="q">수세미, 아직 멀쩡한가요?</td><td>덜 쓰셨으면 좀 더 미뤄드릴게요</td><td>멀쩡해요 / 곧 바꿀게요</td></tr>
+          <tr><td>밀림 다수</td><td class="q">밀린 게 12개 있어요</td><td>한 번에 정리해드릴까요?</td><td>정리하기</td></tr>
+          <tr><td>계절 시작</td><td class="q">선풍기 꺼내셨어요?</td><td>쓰기 시작하시면 그때부터 세어드릴게요</td><td>쓰고 있어요 / 아직이요</td></tr>
+          <tr><td>등록 유도 · D+2</td><td class="q">두 개만 더 담아볼까요?</td><td>지금은 3개라 알림이 뜸해요</td><td>추천 보기</td></tr>
+          <tr><td>푸시 복구 (이메일)</td><td class="q">알림이 안 가고 있는 것 같아요</td><td>알림을 다시 켜주시면 이어서 알려드릴게요</td><td>다시 켜기</td></tr>
+          <tr><td>안전 품목</td><td class="q">화재감지기 건전지, 1년 됐어요</td><td>안전 항목이라 미루지 않는 게 좋아요</td><td>바꿨어요 / 아직이요</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p><strong>안전 품목만 어투가 다르다.</strong> 나머지는 미뤄도 되지만 화재감지기·소화기·가스는 그렇지 않다. 겁주지 않되 <em>미루지 않는 게 좋다</em>는 한 문장을 붙이고, 자기교정 대상에서도 제외한다.</p>
+    </div>
+  </section>
+
+  <!-- ===== 04 빈 상태 · 에러 ===== -->
+  <section>
+    <div class="sh"><span class="sn">04</span><h2>빈 상태 &middot; 에러 문구</h2></div>
+    <div class="rule"></div>
+    <p class="lead">기획서에서 통째로 빠져 있던 부분이다. 에러 문구는 <strong>무엇이 잘못됐는지와 어떻게 되돌리는지</strong>를 같이 말해야 한다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>상황</th><th>문구</th><th>다음 행동</th></tr></thead>
+        <tbody>
+          <tr><td>홈 · 등록 0개</td><td class="q">뭐부터 챙겨볼까요?<br><span style="color:var(--ink-3);font-weight:400">탭하면 바로 등록돼요</span></td><td>추천 목록이 이미 펼쳐진 상태</td></tr>
+          <tr><td>홈 · 전부 여유</td><td class="q">지금은 바꿀 게 없어요<br><span style="color:var(--ink-3);font-weight:400">가장 가까운 건 침구 세탁, 5일 뒤예요</span></td><td>&mdash;</td></tr>
+          <tr><td>검색 결과 없음</td><td class="q">&lsquo;○○&rsquo;는 아직 목록에 없어요<br><span style="color:var(--ink-3);font-weight:400">직접 만들어서 쓰실 수 있어요</span></td><td>직접 추가하기</td></tr>
+          <tr><td>알림 권한 거부</td><td class="q">알림이 꺼져 있어요<br><span style="color:var(--ink-3);font-weight:400">이 앱은 알림이 전부라 꺼두면 아무것도 알려드릴 수 없어요</span></td><td>알림 켜기</td></tr>
+          <tr><td>홈 화면 미설치 (iOS)</td><td class="q">홈 화면에 추가해야 알림이 가요<br><span style="color:var(--ink-3);font-weight:400">공유 버튼 → 홈 화면에 추가</span></td><td>방법 보기</td></tr>
+          <tr><td>네트워크 끊김</td><td class="q">지금은 연결이 안 돼요<br><span style="color:var(--ink-3);font-weight:400">기록은 저장해뒀다가 연결되면 보낼게요</span></td><td>(자동 재시도)</td></tr>
+          <tr><td>저장 실패</td><td class="q">저장이 안 됐어요<br><span style="color:var(--ink-3);font-weight:400">잠시 뒤 다시 시도해주세요</span></td><td>다시 시도</td></tr>
+          <tr><td>휴면 복귀</td><td class="q">다녀오셨네요<br><span style="color:var(--ink-3);font-weight:400">자리 비운 만큼 미뤄드릴까요?</span></td><td>미루기 / 그대로 두기</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 05 문구 원칙 ===== -->
+  <section>
+    <div class="sh"><span class="sn">05</span><h2>문구 원칙</h2></div>
+    <div class="rule"></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>원칙</th><th>이렇게 쓰지 않는다</th><th>이렇게 쓴다</th></tr></thead>
+        <tbody>
+          <tr><td>탓하지 않는다</td><td class="bad">또 안 바꾸셨네요</td><td class="good">수세미, 아직 멀쩡한가요?</td></tr>
+          <tr><td>게으름으로 몰지 않는다</td><td class="bad">교체가 지연되었습니다</td><td class="good">덜 쓰셨으면 좀 더 미뤄드릴게요</td></tr>
+          <tr><td>명령하지 않는다</td><td class="bad">지금 등록하세요</td><td class="good">추가해보세요</td></tr>
+          <tr><td>숫자를 먼저</td><td class="bad">교체 주기가 도래했습니다</td><td class="good">한 달 됐어요</td></tr>
+          <tr><td>기능이 아니라 결과</td><td class="bad">알림 주기를 설정합니다</td><td class="good">언제 알려드릴까요?</td></tr>
+          <tr><td>과장하지 않는다</td><td class="bad">세균 100만 마리가 득실!</td><td class="good">한 달 넘으면 바꾸는 게 좋아요</td></tr>
+          <tr><td>사과하지 않는다</td><td class="bad">죄송합니다. 오류가 발생했습니다</td><td class="good">저장이 안 됐어요. 다시 시도해주세요</td></tr>
+          <tr><td>어려운 말 안 쓴다</td><td class="bad">주기 재설정 · 동기화 실패</td><td class="good">오늘부터 다시 세기 · 연결이 안 돼요</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ul>
+      <li><strong>존댓말, 담백하게.</strong> 과한 친근함이나 이모지 남발은 하지 않는다. 알림에 이모지는 품목 아이콘 하나까지만.</li>
+      <li><strong>제목은 12자 안팎.</strong> 잠금화면에서 잘리지 않아야 한다. 본문은 20자 안팎.</li>
+      <li><strong>버튼은 동사로 끝낸다.</strong> &ldquo;확인&rdquo;이 아니라 &ldquo;바꿨어요&rdquo;. 누르면 무슨 일이 일어나는지가 버튼에 적혀 있어야 한다.</li>
+    </ul>
+
+    <div class="note warn">
+      <p><strong>가장 중요한 한 줄.</strong> 이 앱의 사용자는 물건을 안 바꾸고 미룬 사람이다. 그 사람이 앱을 열었을 때 <em>혼나는 기분</em>이 들면 다시 열지 않는다. 밀린 항목이 12개여도 화면은 담담해야 한다.</p>
+    </div>
+  </section>
+
+  <footer>제때 화면 설계 v0.1 · 2026.09.05 · 카탈로그 159종 기준 · 필터류 · 차량 · 라벨 촬영 제외 버전</footer>
+</div>
+
+</body>
+</html>

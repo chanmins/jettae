@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jettae-dev",
+      "runtimeExecutable": "C:/Users/chanm/AppData/Local/Programs/node/node-v22.20.0-win-x64/node.exe",
+      "runtimeArgs": ["app/node_modules/vite/bin/vite.js", "--config", "app/vite.config.ts"],
+      "port": 5173
+    }
+  ]
+}

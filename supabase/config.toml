@@ -1,0 +1,43 @@
+project_id = "jettae"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+# 계정 없이 시작한다 — 온보딩에서 로그인을 요구하지 않기 위해서다.
+# 이메일 연결은 설정에서 나중에 한다.
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[auth.sms]
+enable_signup = false
+
+[functions.notify-dispatch]
+verify_jwt = false
+
+# 서비스워커에는 세션이 없다. 인증은 푸시 페이로드의 1회용 토큰이 대신한다.
+[functions.notify-respond]
+verify_jwt = false
+
+[functions.push-health]
+verify_jwt = false

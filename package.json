@@ -1,0 +1,19 @@
+{
+  "name": "jettae",
+  "private": true,
+  "version": "0.1.0",
+  "description": "제때 — 집 안 소모품 교체 관리",
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix app run dev",
+    "build": "npm --prefix app run build",
+    "test": "npm --prefix app run test",
+    "typecheck": "npm --prefix app run typecheck",
+    "check:functions": "cd supabase/functions && deno check notify-dispatch/index.ts notify-respond/index.ts push-health/index.ts",
+    "seed": "node scripts/gen-catalog-sql.mjs",
+    "sync:core": "node scripts/sync-core.mjs",
+    "icons": "node scripts/gen-icons.mjs",
+    "vapid": "node scripts/gen-vapid.mjs",
+    "verify": "npm run seed && npm run sync:core && npm run typecheck && npm run test && npm run build"
+  }
+}

@@ -1,0 +1,88 @@
+/* 제때 — 색·간격·타이포. 기획서의 팔레트를 그대로 쓴다. */
+
+:root {
+  --paper: #eaeef0;
+  --surface: #fafbfc;
+  --surface-2: #dde4e8;
+  --ink: #141a1e;
+  --ink-2: #3a464e;
+  --ink-3: #6c7a82;
+  --line: #c6d0d6;
+  --line-soft: #d9e1e5;
+  --accent: #1b5c71;
+  --accent-2: #0f3f50;
+  --accent-soft: #d3e3e9;
+  --on-accent: #ffffff;
+
+  /* 상태 3색 — 여유 · 임박 · 밀림 */
+  --ok: #2c7a57;
+  --ok-soft: #d5e9df;
+  --soon: #b26810;
+  --soon-soft: #f6e5cc;
+  --over: #a33a2b;
+  --over-soft: #f6dbd6;
+
+  --shadow-1: 0 1px 2px rgb(20 26 30 / 6%), 0 2px 8px rgb(20 26 30 / 4%);
+  --shadow-2: 0 4px 16px rgb(20 26 30 / 10%);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-full: 999px;
+
+  --f-body: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --tab-h: 60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #0d1316;
+    --surface: #141c20;
+    --surface-2: #1d272c;
+    --ink: #e5edf1;
+    --ink-2: #aebec6;
+    --ink-3: #7a8a93;
+    --line: #2a373d;
+    --line-soft: #202b30;
+    --accent: #57afc7;
+    --accent-2: #7fc8dc;
+    --accent-soft: #122f3a;
+    --on-accent: #06171d;
+    --ok: #5bbe90;
+    --ok-soft: #123024;
+    --soon: #dda045;
+    --soon-soft: #33260f;
+    --over: #e2705c;
+    --over-soft: #361b16;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-2: 0 4px 16px rgb(0 0 0 / 50%);
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #0d1316;
+  --surface: #141c20;
+  --surface-2: #1d272c;
+  --ink: #e5edf1;
+  --ink-2: #aebec6;
+  --ink-3: #7a8a93;
+  --line: #2a373d;
+  --line-soft: #202b30;
+  --accent: #57afc7;
+  --accent-2: #7fc8dc;
+  --accent-soft: #122f3a;
+  --on-accent: #06171d;
+  --ok: #5bbe90;
+  --ok-soft: #123024;
+  --soon: #dda045;
+  --soon-soft: #33260f;
+  --over: #e2705c;
+  --over-soft: #361b16;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-2: 0 4px 16px rgb(0 0 0 / 50%);
+}
