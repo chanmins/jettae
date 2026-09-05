@@ -209,9 +209,9 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     async addItems(picks) {
-      const { items, events, today } = get();
+      const { items, today } = get();
       const created: Item[] = [];
-      const newEvents: ItemEvent[] = [];
+      // 등록 자체는 이력에 남기지 않는다. item.createdAt이 이미 그 사실이다.
       // 같은 구역의 이름을 누적해가며 번호를 붙인다 — 한 번에 여러 개 담아도 어긋나지 않는다
       const names = new Map<Zone, string[]>();
       for (const item of items) {
@@ -236,10 +236,7 @@ export const useApp = create<AppState>((set, get) => {
       }
 
       if (created.length === 0) return [];
-      await commit(
-        { items: created, events: newEvents },
-        { items: [...items, ...created], events: [...events, ...newEvents] },
-      );
+      await commit({ items: created }, { items: [...items, ...created] });
       return created;
     },
 
