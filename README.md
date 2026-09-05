@@ -161,24 +161,59 @@ core를 고치면 다시 돌린다.
 전송 채널은 인터페이스 뒤에 있다 — Phase 3에서 FCM/APNs로 갈아끼울 지점은
 `notify-dispatch/index.ts`의 `sendPush` 하나다.
 
-## 배포 (Cloudflare Pages)
+## 배포 (Firebase Hosting)
+
+fitlog과 같은 구조다 — `main`에 push하면 GitHub Actions가 빌드하고 Firebase Hosting에 올린다.
+주소가 생기므로 폰에서도 열리고, 홈 화면에 추가하면 설치형 앱처럼 뜬다.
+
+> 기획서는 원래 PWA를 배포하지 않기로 했다(배포본은 Phase 3 네이티브). 지금은 **어디서든
+> 열어보기 위한 미리보기 배포**이고, 그 결정 자체를 뒤집은 것은 아니다.
+
+### 한 번만 하는 설정
+
+1. [Firebase 콘솔](https://console.firebase.google.com)에서 프로젝트를 만든다 (예: `jettae-1234`).
+2. 이 저장소를 GitHub에 올린다.
+3. Hosting → GitHub 연결(또는 `firebase init hosting:github`). Firebase가
+   `FIREBASE_SERVICE_ACCOUNT` 시크릿을 저장소에 자동으로 넣어준다.
+4. 저장소 Settings → Secrets and variables → Actions → **Variables**에
+   `FIREBASE_PROJECT_ID`를 넣는다.
+5. `.firebaserc`의 `REPLACE_WITH_FIREBASE_PROJECT_ID`를 같은 값으로 바꾼다
+   (로컬에서 `firebase deploy`를 쓸 때만 필요하다).
+
+그 뒤로는 push할 때마다 자동으로 올라간다. 워크플로는 배포 전에 **생성물 최신 여부 → 타입
+검사 → 테스트 → 빌드**를 차례로 돌리므로, 깨진 상태가 배포되지 않는다.
+
+### Supabase를 함께 붙일 때
+
+같은 **Variables**에 세 개를 더 넣으면 계정 동기화와 푸시가 켜진다.
 
 ```
-빌드 명령   npm install --prefix app && npm run build
-출력 디렉터리 app/dist
-환경변수     VITE_SUPABASE_URL · VITE_SUPABASE_ANON_KEY · VITE_VAPID_PUBLIC_KEY
+VITE_SUPABASE_URL · VITE_SUPABASE_ANON_KEY · VITE_VAPID_PUBLIC_KEY
 ```
 
-`app/public/_redirects`가 SPA 라우팅을, `_headers`가 서비스워커 캐시를 처리한다.
+비워두면 배포본도 IndexedDB만 쓰는 **로컬 모드**로 동작한다 — 앱은 온전히 돌아가지만
+기기마다 데이터가 따로 놀고 푸시가 가지 않는다.
 
-기획서의 결정에 따라 **PWA는 실제로 배포하지 않는다.** 로직과 화면 흐름을 빠르게 검증하는
-도구이고, 배포본은 Phase 3에서 네이티브로 만든다. 개발 중 알림 테스트는 Android 크롬으로
-한다 — 설치 없이 Web Push가 동작한다.
+붙일 때는 Supabase 대시보드에서 배포 주소(`https://<project>.web.app`)를
+**Authentication → URL Configuration**의 Site URL·Redirect URLs에 추가해야 이메일 연결이 된다.
+
+### 빌드 결과를 로컬에서 확인하려면
+
+```bash
+npm run build
+npm run preview --prefix app
+```
+
+`firebase.json`이 SPA 리라이트와 캐시 헤더를 담당한다 — `sw.js`·`index.html`·매니페스트는
+no-cache, 해시가 붙은 `/assets/*`는 1년 캐시.
+
+개발 중 알림 테스트는 Android 크롬으로 한다 — 설치 없이 Web Push가 동작한다.
 
 ## 알아둘 것
 
-- **iOS Safari의 웹 푸시**는 홈 화면에 설치된 PWA에서만 동작한다. 기획서가 PWA 배포를
-  접으면서 이 제약은 범위 밖이 됐고, 온보딩의 '홈 화면 추가' 단계도 만들지 않았다.
+- **iOS Safari의 웹 푸시**는 홈 화면에 설치된 PWA에서만 동작한다. 배포 주소가 생겼으니
+  아이폰에서 공유 → 홈 화면에 추가를 하면 알림까지 받을 수는 있지만, 온보딩에 그 안내
+  단계는 두지 않았다(기획서 결정). 아이폰에서 그냥 사파리로 열면 알림만 오지 않는다.
 - **번들 크기**는 gzip 141KB이고 대부분이 `@supabase/supabase-js`다. 로컬 전용으로만 쓸
   거라면 지연 로딩으로 줄일 여지가 있다.
 - **교체 주기는 일반 권장값이다.** 제품·사용 환경에 따라 다르고, 제조사 권장값이 있으면

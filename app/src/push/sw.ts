@@ -8,7 +8,12 @@
  * 응답 인증은 푸시 페이로드에 실려 온 1회용 토큰으로 한다 — 서비스워커에는
  * 사용자 세션이 없기 때문이다.
  */
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+import {
+  precacheAndRoute,
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+} from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { clientsClaim } from 'workbox-core';
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -19,6 +24,20 @@ precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 self.skipWaiting();
 clientsClaim();
+
+/**
+ * 주소가 있는 화면(/settings · /item/:id · /overdue)을 오프라인에서도 연다.
+ *
+ * 프리캐시에는 `/index.html` 하나만 들어 있어서, 이게 없으면 연결이 끊긴 상태로
+ * /settings 를 새로고침하는 순간 브라우저 오류 화면이 뜬다. 알림에서 /overdue 로
+ * 들어오는 경로도 마찬가지다 — 알림이 곧 제품인 앱에서 그건 그냥 고장이다.
+ */
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+    // 서버로 나가야 하는 것들은 앱 껍데기로 가로채지 않는다
+    denylist: [/^\/functions\//, /^\/rest\//, /^\/auth\//, /\.[^/]+$/],
+  }),
+);
 
 interface PushPayload {
   digestId: string;

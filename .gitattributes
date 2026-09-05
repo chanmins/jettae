@@ -1,0 +1,6 @@
+# 생성물(카탈로그 시드·_shared/core)을 CI가 원본과 대조한다.
+# 줄바꿈이 플랫폼마다 달라지면 그 비교가 헛돌므로 저장소 안에서는 LF로 통일한다.
+* text=auto eol=lf
+*.png binary
+*.zip binary
+*.xlsx binary

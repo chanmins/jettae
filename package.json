@@ -13,6 +13,7 @@
     "seed": "node scripts/gen-catalog-sql.mjs",
     "sync:core": "node scripts/sync-core.mjs",
     "icons": "node scripts/gen-icons.mjs",
+    "serve:dist": "node scripts/serve-static.mjs app/dist 5175",
     "vapid": "node scripts/gen-vapid.mjs",
     "verify": "npm run seed && npm run sync:core && npm run typecheck && npm run test && npm run build"
   }
