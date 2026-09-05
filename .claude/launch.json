@@ -20,16 +20,6 @@
         "5175"
       ],
       "port": 5175
-    },
-    {
-      "name": "fitlog",
-      "runtimeExecutable": "C:/Users/chanm/AppData/Local/Programs/node/node-v22.20.0-win-x64/node.exe",
-      "runtimeArgs": [
-        "C:/jettae/scripts/serve-static.mjs",
-        "C:/fitlog",
-        "5174"
-      ],
-      "port": 5174
     }
   ]
 }
