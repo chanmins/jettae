@@ -133,12 +133,19 @@ VITE_VAPID_PUBLIC_KEY=<공개키>
 supabase secrets set --env-file supabase/functions/.env
 ```
 
-마지막으로 크론이 엣지 함수를 부를 수 있게 설정값을 넣는다. 대시보드 SQL 편집기에서 한 번:
+마지막으로 크론이 엣지 함수를 부를 수 있게 두 값을 Vault에 넣는다.
+대시보드 SQL 편집기에서 한 번 — `<>` 괄호는 값에 포함하지 않는다:
 
 ```sql
-alter database postgres set app.settings.functions_url = 'https://<ref>.supabase.co/functions/v1';
-alter database postgres set app.settings.service_role_key = '<service_role_key>';
+select vault.create_secret('https://<ref>.supabase.co/functions/v1', 'functions_url');
+select vault.create_secret('<service_role_key>', 'service_role_key');
 ```
+
+`service_role` 키는 Vault가 암호화해 보관하고 복호화 뷰는 postgres·service_role만
+읽으므로 클라이언트로는 나가지 않는다. 값을 갱신할 때는 `vault.update_secret`을 쓴다.
+
+호스팅 Supabase의 postgres 역할은 superuser가 아니라서
+`alter database postgres set app.settings.*`는 42501로 막힌다 — 예전 방식이니 쓰지 않는다.
 
 ### 알림이 도는 방식
 

@@ -3,13 +3,9 @@
 -- 5분마다 notify-dispatch를 부른다. 함수 안에서 "지금이 이 사용자의 발송 시각인가"를
 -- 판정하므로, 사용자가 시각을 어떻게 정하든 5분 오차 안에서 맞는다.
 --
--- 실행 전에 아래 두 설정값을 넣어야 한다(대시보드 SQL 편집기에서 한 번):
---
---   alter database postgres set app.settings.functions_url = 'https://<project>.supabase.co/functions/v1';
---   alter database postgres set app.settings.service_role_key = '<service_role_key>';
---
--- service_role 키가 DB 설정에 들어가지만, 이 값을 읽을 수 있는 것은 superuser뿐이고
--- 클라이언트에는 어떤 경로로도 노출되지 않는다.
+-- 설정값을 읽는 방식은 20260906000100_cron_vault.sql에서 Vault로 바뀌었다.
+-- 아래 current_setting 판독부는 그 마이그레이션이 replace한다 — 여기를 고치지 말고
+-- 새 마이그레이션을 보라. 호스팅 Supabase에서는 alter database ... set이 막혀 있다.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
