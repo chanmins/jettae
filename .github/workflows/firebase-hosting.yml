@@ -58,24 +58,38 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build --prefix app
 
+      # 프로젝트 ID의 출처는 .firebaserc 하나다.
+      # `firebase use --add`가 그 파일을 관리하므로, 여기서 읽으면 로컬 배포와
+      # CI 배포가 같은 곳을 보게 된다. 따로 적어두면 언젠가 한쪽만 바뀐다.
+      - name: Firebase 프로젝트 ID 읽기
+        id: firebase
+        run: |
+          # .firebaserc 는 확장자가 .json 이 아니라 require() 로는 못 읽는다.
+          # (JS 로 파싱돼 SyntaxError 가 난다 — 읽어서 JSON.parse 해야 한다)
+          ID=$(node -p "JSON.parse(require('fs').readFileSync('.firebaserc','utf8')).projects.default || ''")
+          if [ -z "$ID" ] || [ "$ID" = "REPLACE_WITH_FIREBASE_PROJECT_ID" ]; then
+            echo "::error::.firebaserc에 프로젝트 ID가 없어요. 로컬에서 'firebase use --add'를 돌리고 커밋해주세요."
+            exit 1
+          fi
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          echo "배포 대상: $ID"
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          projectId: ${{ steps.firebase.outputs.id }}
           channelId: live
 
 # 필요한 설정 (한 번만)
 #
-#   Settings → Secrets and variables → Actions
-#     Secrets   FIREBASE_SERVICE_ACCOUNT   Firebase 콘솔이 만들어주는 서비스 계정 JSON
-#     Variables FIREBASE_PROJECT_ID        예: jettae-1234
+#   1. 로컬에서  firebase use --add  → .firebaserc 에 프로젝트 ID가 적힌다. 커밋한다.
+#   2. 로컬에서  firebase init hosting:github  → 저장소에
+#      FIREBASE_SERVICE_ACCOUNT 시크릿이 자동으로 들어간다.
 #
 #   아래 셋은 없어도 앱이 뜬다. 비어 있으면 IndexedDB만 쓰는 로컬 모드로 동작하고,
 #   계정 동기화와 푸시 알림만 꺼진다.
-#     Variables VITE_SUPABASE_URL
-#               VITE_SUPABASE_ANON_KEY
-#               VITE_VAPID_PUBLIC_KEY
-#
-# 서비스 계정은 Firebase 콘솔에서 이 저장소를 연결하면 자동으로 만들어진다:
-#   firebase init hosting:github   (또는 콘솔 → Hosting → GitHub 연결)
+#     Settings → Secrets and variables → Actions → Variables
+#       VITE_SUPABASE_URL
+#       VITE_SUPABASE_ANON_KEY
+#       VITE_VAPID_PUBLIC_KEY
