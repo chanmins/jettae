@@ -1,0 +1,104 @@
+name: CI
+
+# 배포는 여기서 하지 않는다. 로컬에서 `npm run deploy` 로 올린다.
+#
+# 원래는 이 워크플로가 Firebase Hosting까지 배포했는데, 서비스 계정을 만들려면
+# 프로젝트에 IAM API를 켜야 해서 그 단계를 접었다. 시크릿 없이 배포 단계만 남겨두면
+# push할 때마다 빨간 X가 뜨고, 그게 일상이 되면 진짜 고장도 같은 모양이라 놓친다.
+#
+# 배포를 다시 붙이려면 맨 아래 주석을 보면 된다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: 의존성 설치
+        run: npm ci --prefix app
+
+      # 저장소와 생성물이 어긋나지 않게 한다.
+      # 카탈로그 JSON을 고치고 시드를 다시 만들지 않았거나, core를 고치고
+      # 엣지 함수 쪽 사본을 동기화하지 않았으면 여기서 걸린다.
+      - name: 생성물이 최신인지 확인
+        run: |
+          node scripts/gen-catalog-sql.mjs
+          node scripts/sync-core.mjs
+          if ! git diff --quiet; then
+            echo "::error::생성물이 원본과 어긋나 있어요. 로컬에서 'npm run seed && npm run sync:core' 후 커밋해주세요."
+            git --no-pager diff --stat
+            exit 1
+          fi
+
+      - name: 타입 검사
+        run: npm run typecheck --prefix app
+
+      - name: 테스트
+        run: npm run test --prefix app
+
+      - name: 빌드
+        run: npm run build --prefix app
+
+  # core/ 는 앱과 엣지 함수가 함께 쓰는 코드다. Deno 쪽에서도 컴파일되는지 본다.
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: 엣지 함수 타입 검사
+        working-directory: supabase/functions
+        run: deno check notify-dispatch/index.ts notify-respond/index.ts push-health/index.ts
+
+# ─── 자동 배포를 다시 켜려면 ────────────────────────────────────────────
+#
+# 1. 프로젝트에 두 API를 켠다 (새 Firebase 프로젝트는 꺼져 있다):
+#      https://console.developers.google.com/apis/api/iam.googleapis.com/overview?project=jettae-4fb58
+#      https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview?project=jettae-4fb58
+#
+# 2. firebase init hosting:github
+#    → 저장소에 FIREBASE_SERVICE_ACCOUNT 시크릿이 들어간다.
+#    (같이 만들어지는 워크플로 두 개는 이 파일과 중복이므로 지운다)
+#
+# 3. check 잡 마지막에 아래를 붙인다:
+#
+#      - name: Firebase 프로젝트 ID 읽기
+#        id: firebase
+#        run: |
+#          # .firebaserc 는 확장자가 .json 이 아니라 require() 로는 못 읽는다
+#          ID=$(node -p "JSON.parse(require('fs').readFileSync('.firebaserc','utf8')).projects.default || ''")
+#          if [ -z "$ID" ]; then echo "::error::.firebaserc에 프로젝트 ID가 없어요"; exit 1; fi
+#          echo "id=$ID" >> "$GITHUB_OUTPUT"
+#
+#      - uses: FirebaseExtended/action-hosting-deploy@v0
+#        if: github.event_name == 'push'
+#        with:
+#          repoToken: ${{ secrets.GITHUB_TOKEN }}
+#          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+#          projectId: ${{ steps.firebase.outputs.id }}
+#          channelId: live
+#
+# 4. Supabase를 붙였다면 빌드 단계에 환경변수를 넘긴다:
+#      Settings → Secrets and variables → Actions → Variables
+#        VITE_SUPABASE_URL · VITE_SUPABASE_ANON_KEY · VITE_VAPID_PUBLIC_KEY

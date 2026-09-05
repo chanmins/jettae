@@ -15,6 +15,8 @@
     "icons": "node scripts/gen-icons.mjs",
     "serve:dist": "node scripts/serve-static.mjs app/dist 5175",
     "vapid": "node scripts/gen-vapid.mjs",
-    "verify": "npm run seed && npm run sync:core && npm run typecheck && npm run test && npm run build"
+    "verify": "npm run seed && npm run sync:core && npm run typecheck && npm run test && npm run build",
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:safe": "npm run verify && firebase deploy --only hosting"
   }
 }
