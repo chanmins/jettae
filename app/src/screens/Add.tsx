@@ -127,7 +127,15 @@ export default function Add() {
           </div>
         )
       ) : (
-        ZONES.map((zone) => <ZoneSection key={zone} zone={zone} inBasket={inBasket} onToggle={toggle} />)
+        ZONES.map((zone, i) => (
+          <ZoneSection
+            key={zone}
+            zone={zone}
+            defaultOpen={i === 0}
+            inBasket={inBasket}
+            onToggle={toggle}
+          />
+        ))
       )}
 
       {!results && (
@@ -156,35 +164,28 @@ export default function Add() {
 
 function ZoneSection({
   zone,
+  defaultOpen,
   inBasket,
   onToggle,
 }: {
   zone: Zone;
+  defaultOpen: boolean;
   inBasket: ReadonlySet<string>;
   onToggle: (item: CatalogItem) => void;
 }) {
   const items = CATALOG.byZone.get(zone) ?? [];
-  const [open, setOpen] = useState(zone === '욕실' || zone === '주방');
+  const [open, setOpen] = useState(defaultOpen);
   if (items.length === 0) return null;
 
   return (
     <>
-      <button
-        className="section"
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'space-between',
-          background: 'none',
-          border: 'none',
-        }}
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
+      <button className="section toggle" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
         <span>
           {zone} · {items.length}
         </span>
-        <span aria-hidden="true">{open ? '−' : '+'}</span>
+        <span className="chev" aria-hidden="true">
+          ▾
+        </span>
       </button>
       {open && (
         <div className="zonegroup">

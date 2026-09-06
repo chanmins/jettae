@@ -493,6 +493,32 @@ a {
   letter-spacing: 0.02em;
 }
 
+/* 여닫는 섹션 머리. 손댈 수 있다는 것과 지금 열려 있는지가 보여야 한다 —
+   +/− 는 하단 FAB의 +와 겹쳐 뜻이 흐렸다. 꺾쇠가 돌아가는 쪽이 분명하다. */
+.section.toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--line-soft);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.section.toggle .chev {
+  font-size: 12px;
+  transition: transform 140ms ease;
+}
+
+.section.toggle[aria-expanded='true'] .chev {
+  transform: rotate(180deg);
+}
+
 .divider {
   height: 1px;
   background: var(--line-soft);

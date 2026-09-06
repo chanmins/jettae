@@ -35,7 +35,7 @@ function TabBar() {
       </NavLink>
       <NavLink to="/settings" className={({ isActive }) => (isActive ? 'on' : '')}>
         <span className="ico" aria-hidden="true">
-          ⚙︎
+          ⚙️
         </span>
         설정
       </NavLink>
@@ -113,7 +113,15 @@ export default function App() {
   }
 
   const onboarding = location.pathname === '/onboarding';
-  if (!onboardedAt && !onboarding) return <Navigate to="/onboarding" replace />;
+  /**
+   * 온보딩의 '다른 것 찾아보기 / 직접 추가하기'는 /add로 나간다. 이 경로를 막으면
+   * 가드가 /onboarding으로 되돌리고, 컴포넌트가 다시 마운트되어 첫 화면으로 떨어진다.
+   * from=onboarding이 붙은 동안만 열어둔다 — 탭바 없이 그 화면만 보여준다.
+   */
+  const onboardingDetour =
+    !onboardedAt && new URLSearchParams(location.search).get('from') === 'onboarding';
+  if (!onboardedAt && !onboarding && !onboardingDetour)
+    return <Navigate to="/onboarding" replace />;
   if (onboardedAt && onboarding) return <Navigate to="/" replace />;
   if (onboarding) return <Onboarding />;
 

@@ -7,7 +7,7 @@
  *
  * PWA를 배포하지 않으므로 '홈 화면에 추가' 단계는 만들지 않는다.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onboardingPicks, SHORT_CYCLE_DAYS } from '../core/catalog';
 import { cycleLabel } from '../core/humanize';
@@ -17,6 +17,38 @@ import { useApp } from '../store/useApp';
 
 const STEPS = 4;
 
+/**
+ * '다른 것 찾아보기'로 나갔다 오면 이 컴포넌트는 다시 마운트된다. 진행 상태를
+ * 세션에 남겨 첫 화면으로 되돌아가지 않게 한다. 세션 저장이 막혀 있어도 온보딩은
+ * 그대로 돌아간다 — 그때는 예전처럼 처음부터다.
+ */
+const DRAFT_KEY = 'jettae.onboarding';
+
+interface Draft {
+  step: number;
+  zones: Zone[];
+  checked: string[];
+  touched: string[];
+  notifyAt: string;
+}
+
+function readDraft(): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft(): void {
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // 지우지 못해도 온보딩 완료 후에는 이 화면으로 다시 오지 않는다
+  }
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const addItems = useApp((s) => s.addItems);
@@ -24,13 +56,27 @@ export default function Onboarding() {
   const setNotifyAt = useApp((s) => s.setNotifyAt);
   const settings = useApp((s) => s.settings);
 
-  const [step, setStep] = useState(0);
-  const [zones, setZones] = useState<Zone[]>(['욕실', '주방', '침실']);
-  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [draft] = useState(readDraft);
+
+  const [step, setStep] = useState(draft?.step ?? 0);
+  /** 공간은 비워두고 시작한다 — 고르지 않은 것을 고른 것처럼 보여주지 않는다 */
+  const [zones, setZones] = useState<Zone[]>(draft?.zones ?? []);
+  const [checked, setChecked] = useState<Set<string>>(new Set(draft?.checked ?? []));
   /** 사용자가 직접 손댄 품목. 손대지 않은 것은 기본 체크로 본다 */
-  const [touched, setTouched] = useState<Set<string>>(new Set());
-  const [notifyAt, setLocalNotifyAt] = useState(settings.notifyAt);
+  const [touched, setTouched] = useState<Set<string>>(new Set(draft?.touched ?? []));
+  const [notifyAt, setLocalNotifyAt] = useState(draft?.notifyAt ?? settings.notifyAt);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ step, zones, checked: [...checked], touched: [...touched], notifyAt }),
+      );
+    } catch {
+      // 저장이 막혀 있으면 보존을 포기한다. 온보딩 자체는 그대로 돈다.
+    }
+  }, [step, zones, checked, touched, notifyAt]);
 
   const picks = useMemo(() => onboardingPicks(CATALOG, zones), [zones]);
 
@@ -66,6 +112,7 @@ export default function Onboarding() {
     }
     await setNotifyAt(notifyAt);
     await completeOnboarding();
+    clearDraft();
     navigate('/', { replace: true });
   };
 
