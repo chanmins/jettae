@@ -6,15 +6,16 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { searchCatalog } from '../core/catalog';
+import { baseDateForWear, searchCatalog, WEAR_OPTIONS, type Wear } from '../core/catalog';
 import { cycleLabel } from '../core/humanize';
 import { isFrequent } from '../core/cycle';
 import { ZONES, type CatalogItem, type Zone } from '../core/types';
 import { CATALOG } from '../store/catalog';
 import { useApp } from '../store/useApp';
-import { NavBar, useToast } from '../ui/primitives';
+import { NavBar, Sheet, useToast } from '../ui/primitives';
 import { enablePush, pushState } from '../push/client';
 import { getRepository } from '../db';
+import { itemIcon } from '../ui/itemIcon';
 
 export default function Add() {
   const navigate = useNavigate();
@@ -23,11 +24,13 @@ export default function Add() {
   const { show, node: toast } = useToast();
 
   const addItems = useApp((s) => s.addItems);
+  const today = useApp((s) => s.today);
   const itemCount = useApp((s) => s.items.filter((i) => i.status !== 'archived').length);
 
   const [query, setQuery] = useState('');
   const [basket, setBasket] = useState<CatalogItem[]>([]);
   const [busy, setBusy] = useState(false);
+  const [wearSheet, setWearSheet] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const results = useMemo(() => (query.trim() ? searchCatalog(CATALOG, query) : null), [query]);
@@ -47,11 +50,22 @@ export default function Add() {
     );
   };
 
-  const save = async () => {
+  /*
+   * 새로 산 것보다 이미 쓰는 중인 것을 등록하는 경우가 훨씬 많다. 그래서 담기
+   * 직후에 한 번만 묻고, 고른 비율을 품목마다 자기 주기에 적용한다 — 7일짜리
+   * 수세미와 365일짜리 필터가 한 묶음에 있어도 각각 맞는 기준일이 들어간다.
+   */
+  const save = async (wear: Wear) => {
     if (basket.length === 0) return;
     setBusy(true);
+    setWearSheet(false);
     const wasEmpty = itemCount === 0;
-    await addItems(basket.map((catalog) => ({ catalog })));
+    await addItems(
+      basket.map((catalog) => ({
+        catalog,
+        baseDate: baseDateForWear(today, catalog.cycle_days, wear),
+      })),
+    );
 
     // 첫 등록 직후에만 OS 권한을 묻는다 — 이제 알림이 갈 일이 생겼다는 맥락에서.
     if (wasEmpty && pushState() === 'default') {
@@ -151,10 +165,38 @@ export default function Add() {
 
       {basket.length > 0 && (
         <div className="basketbar">
-          <button className="btn primary lg block" disabled={busy} onClick={save}>
+          <button
+            className="btn primary lg block"
+            disabled={busy}
+            onClick={() => setWearSheet(true)}
+          >
             {basket.length}개 담기
           </button>
         </div>
+      )}
+
+      {wearSheet && (
+        <Sheet
+          title="지금 얼마나 쓰셨어요?"
+          lead="새로 산 게 아니라 이미 쓰는 중이시죠. 주기의 어디쯤인지만 알려주시면 됩니다."
+          onClose={() => setWearSheet(false)}
+        >
+          <div style={{ display: 'grid', gap: 8 }}>
+            {WEAR_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className="checkline"
+                disabled={busy}
+                onClick={() => void save(opt.value)}
+              >
+                <span className="stack">
+                  <span className="nm">{opt.label}</span>
+                  <span className="cy">{opt.hint}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </Sheet>
       )}
 
       {toast}
@@ -216,6 +258,9 @@ function CatalogRow({
 }) {
   return (
     <button className={`catrow ${on ? 'on' : ''}`} onClick={onToggle} aria-pressed={on}>
+      <span className="ico-tile" aria-hidden="true">
+        {itemIcon(item)}
+      </span>
       <span className="nm">
         {item.name}
         {showZone && <span className="cy"> · {item.zone}</span>}

@@ -8,8 +8,9 @@
  *
  * 여기서는 조회·검색·정렬만 한다. 데이터 자체는 src/data/catalog.json 이다.
  */
+import { addDays } from './date.ts';
 import { paoLabel } from './humanize.ts';
-import type { CatalogItem, Zone } from './types.ts';
+import type { CatalogItem, ISODate, Zone } from './types.ts';
 import { ZONES } from './types.ts';
 
 export interface CatalogIndex {
@@ -119,13 +120,32 @@ export function paoOptions(defaultDays: number): number[] {
   return [...byLabel.values()].sort((a, b) => a - b);
 }
 
-/** "쓰던 거예요" 선택지 — 대략 얼마나 썼는지. */
-export const USED_SINCE_OPTIONS: ReadonlyArray<{ label: string; days: number | null }> = [
-  { label: '1주', days: 7 },
-  { label: '1개월', days: 30 },
-  { label: '3개월', days: 90 },
-  { label: '기억 안 남', days: null },
+/**
+ * 이미 쓰고 있던 제품을 등록할 때 "얼마나 썼는지".
+ *
+ * 대부분의 사용자는 새로 산 것이 아니라 이미 쓰는 중인 것을 등록한다. 그런데
+ * 이걸 날짜로 물으면 두 가지가 어긋난다. 첫째, 수세미를 언제부터 썼는지 기억하는
+ * 사람은 없다. 둘째, 주기가 7일인 것과 365일인 것에 "3개월 전"을 똑같이 쓸 수
+ * 없다 — 7일짜리는 12주기나 밀린 상태가 된다.
+ *
+ * 그래서 절대 날짜가 아니라 그 품목 주기의 비율로 묻는다. 한 번 고르면 주기가
+ * 섞인 묶음에도 각각 맞는 기준일이 들어가고, 어떤 경우에도 이미 밀린 상태로
+ * 등록되지 않는다(최대 80%).
+ */
+export type Wear = 'new' | 'half' | 'most';
+
+export const WEAR_OPTIONS: ReadonlyArray<{ value: Wear; label: string; hint: string }> = [
+  { value: 'new', label: '새 거예요', hint: '오늘부터 세기 시작해요' },
+  { value: 'half', label: '쓰던 거예요', hint: '주기의 절반쯤 지난 것으로 봐요' },
+  { value: 'most', label: '바꿀 때가 다 됐어요', hint: '주기의 80%쯤 지난 것으로 봐요' },
 ];
+
+const WEAR_RATIO: Readonly<Record<Wear, number>> = { new: 0, half: 0.5, most: 0.8 };
+
+/** 얼마나 썼는지에 해당하는 기준일. 주기의 그 비율만큼 과거로 물린다. */
+export function baseDateForWear(today: ISODate, cycleDays: number, wear: Wear): ISODate {
+  return addDays(today, -Math.round(cycleDays * WEAR_RATIO[wear]));
+}
 
 /** 개봉 시점 선택지. */
 export const OPENED_OPTIONS: ReadonlyArray<{ label: string; days: number | null }> = [

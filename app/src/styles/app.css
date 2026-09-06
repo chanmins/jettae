@@ -811,6 +811,43 @@ a {
   color: var(--ink-3);
 }
 
+/*
+ * 품목 그림 타일. 이모지를 맨몸으로 두면 글꼴마다 폭이 들쭉날쭉해서 목록의
+ * 세로줄이 맞지 않는다. 같은 크기 원 안에 넣으면 썸네일처럼 읽힌다.
+ */
+.ico-tile {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* 담긴 줄은 배경이 강조색으로 깔리므로 타일을 한 단 올려 묻히지 않게 한다 */
+.catrow.on .ico-tile,
+.checkline.on .ico-tile {
+  background: var(--surface);
+}
+
+/* 설명이 한 줄 붙는 선택지 */
+.checkline .stack {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkline .stack .nm,
+.checkline .stack .cy {
+  display: block;
+}
+
+.checkline .stack .cy {
+  margin-top: 2px;
+}
+
 .checklist {
   display: flex;
   flex-direction: column;

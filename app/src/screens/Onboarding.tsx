@@ -9,11 +9,18 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { onboardingPicks, SHORT_CYCLE_DAYS } from '../core/catalog';
+import {
+  baseDateForWear,
+  onboardingPicks,
+  SHORT_CYCLE_DAYS,
+  WEAR_OPTIONS,
+  type Wear,
+} from '../core/catalog';
 import { cycleLabel } from '../core/humanize';
 import { ONBOARDING_ZONES, type CatalogItem, type Zone } from '../core/types';
 import { CATALOG } from '../store/catalog';
 import { useApp } from '../store/useApp';
+import { itemIcon } from '../ui/itemIcon';
 
 const STEPS = 4;
 
@@ -30,6 +37,7 @@ interface Draft {
   checked: string[];
   touched: string[];
   notifyAt: string;
+  wear: Wear;
 }
 
 function readDraft(): Draft | null {
@@ -55,6 +63,7 @@ export default function Onboarding() {
   const completeOnboarding = useApp((s) => s.completeOnboarding);
   const setNotifyAt = useApp((s) => s.setNotifyAt);
   const settings = useApp((s) => s.settings);
+  const today = useApp((s) => s.today);
 
   const [draft] = useState(readDraft);
 
@@ -65,18 +74,30 @@ export default function Onboarding() {
   /** 사용자가 직접 손댄 품목. 손대지 않은 것은 기본 체크로 본다 */
   const [touched, setTouched] = useState<Set<string>>(new Set(draft?.touched ?? []));
   const [notifyAt, setLocalNotifyAt] = useState(draft?.notifyAt ?? settings.notifyAt);
+  /*
+   * 기본값이 '새 거예요'가 아니다. 이 앱을 켜는 사람은 새로 산 물건이 아니라
+   * 이미 집에서 쓰고 있는 물건을 등록한다 — 기본값이 그 사실을 따라야 한다.
+   */
+  const [wear, setWear] = useState<Wear>(draft?.wear ?? 'half');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     try {
       sessionStorage.setItem(
         DRAFT_KEY,
-        JSON.stringify({ step, zones, checked: [...checked], touched: [...touched], notifyAt }),
+        JSON.stringify({
+          step,
+          zones,
+          checked: [...checked],
+          touched: [...touched],
+          notifyAt,
+          wear,
+        }),
       );
     } catch {
       // 저장이 막혀 있으면 보존을 포기한다. 온보딩 자체는 그대로 돈다.
     }
-  }, [step, zones, checked, touched, notifyAt]);
+  }, [step, zones, checked, touched, notifyAt, wear]);
 
   const picks = useMemo(() => onboardingPicks(CATALOG, zones), [zones]);
 
@@ -108,7 +129,12 @@ export default function Onboarding() {
   const finish = async () => {
     setBusy(true);
     if (selected.length > 0) {
-      await addItems(selected.map((catalog) => ({ catalog })));
+      await addItems(
+        selected.map((catalog) => ({
+          catalog,
+          baseDate: baseDateForWear(today, catalog.cycle_days, wear),
+        })),
+      );
     }
     await setNotifyAt(notifyAt);
     await completeOnboarding();
@@ -212,12 +238,38 @@ export default function Onboarding() {
                         <span className="box" aria-hidden="true">
                           ✓
                         </span>
+                        <span className="ico-tile" aria-hidden="true">
+                          {itemIcon(item)}
+                        </span>
                         <span className="nm">{item.name}</span>
                         <span className="cy">{cycleLabel(item.cycle_days)}</span>
                       </button>
                     );
                   })}
                 </div>
+              )}
+
+              {picks.length > 0 && (
+                <>
+                  <div className="section" style={{ padding: '18px 0 8px' }}>
+                    지금 얼마나 쓰셨어요?
+                  </div>
+                  <div className="optgrid">
+                    {WEAR_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`btn ${wear === opt.value ? 'primary' : ''}`}
+                        aria-pressed={wear === opt.value}
+                        onClick={() => setWear(opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="note" style={{ margin: '8px 0 0' }}>
+                    {WEAR_OPTIONS.find((o) => o.value === wear)?.hint}
+                  </p>
+                </>
               )}
 
               <div className="btnrow" style={{ marginTop: 14 }}>

@@ -11,7 +11,7 @@ import { cycleSuffix, elapsedLabel } from '../core/humanize';
 import { overdueItems } from '../core/overdue';
 import { useApp } from '../store/useApp';
 import { NavBar, useToast } from '../ui/primitives';
-import { iconOf } from '../ui/ItemRow';
+import { itemIcon } from '../ui/itemIcon';
 
 export default function Overdue() {
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function Overdue() {
           <div key={item.id} className="card" style={{ padding: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span aria-hidden="true" style={{ fontSize: 20 }}>
-                {iconOf(item)}
+                {itemIcon(item)}
               </span>
               <span className="body" style={{ flex: 1, minWidth: 0 }}>
                 <span className="name" style={{ fontWeight: 600 }}>

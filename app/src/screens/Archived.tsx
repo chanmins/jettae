@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { cycleSuffix } from '../core/humanize';
 import { useApp } from '../store/useApp';
 import { NavBar, useToast } from '../ui/primitives';
-import { iconOf } from '../ui/ItemRow';
+import { itemIcon } from '../ui/itemIcon';
 
 export default function Archived() {
   const { show, node: toast } = useToast();
@@ -28,7 +28,7 @@ export default function Archived() {
           {archived.map((item) => (
             <div key={item.id} className="row paused">
               <span aria-hidden="true" style={{ fontSize: 20 }}>
-                {iconOf(item)}
+                {itemIcon(item)}
               </span>
               <span className="body">
                 <span className="name">{item.name}</span>

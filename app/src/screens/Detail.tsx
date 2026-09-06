@@ -19,7 +19,7 @@ import { nextSeasonStart } from '../core/season';
 import { CATALOG } from '../store/catalog';
 import { useApp } from '../store/useApp';
 import { Confirm, NavBar, Sheet, useToast } from '../ui/primitives';
-import { iconOf } from '../ui/ItemRow';
+import { itemIcon } from '../ui/itemIcon';
 
 const CYCLE_PRESETS = [7, 14, 21, 30, 60, 90, 180, 365, 730];
 
@@ -99,7 +99,7 @@ export default function Detail() {
       <div className="pad">
         <div className="card" style={{ padding: '24px 20px', textAlign: 'center' }}>
           <div style={{ fontSize: 34 }} aria-hidden="true">
-            {iconOf(item)}
+            {itemIcon(item)}
           </div>
           <div
             className={`dday ${state}`}
