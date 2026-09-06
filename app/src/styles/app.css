@@ -55,10 +55,15 @@ a {
   flex-direction: column;
 }
 
+/*
+ * overflow를 걸지 않는다. .app이 min-height: 100%라 이 요소는 내용 높이만큼
+ * 늘어나고, overflow-y: auto를 주면 "스크롤되지 않는 스크롤 컨테이너"가 된다.
+ * 그러면 안에 있는 position: sticky가 붙을 스크롤포트를 잃는다 — .basketbar가
+ * 화면 밖(1836px)에 남아 담은 개수가 보이지 않던 원인이다. 스크롤은 문서가 맡고,
+ * sticky는 .tabbar처럼 뷰포트에 붙는다.
+ */
 .scroll {
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   padding-bottom: calc(var(--tab-h) + var(--safe-b) + 24px);
 }
 
@@ -909,7 +914,9 @@ a {
   background: var(--paper);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   padding: 8px 20px calc(20px + var(--safe-b));
-  max-height: 86vh;
+  /* dvh를 쓴다 — vh는 주소창이 숨은 상태 기준이라, 주소창이 보이면 시트가
+     실제로 보이는 높이보다 커진다. */
+  max-height: 86dvh;
   overflow-y: auto;
   animation: up 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
 }

@@ -264,6 +264,10 @@ export default function Onboarding() {
               <p className="note" style={{ margin: '12px 0 0', textAlign: 'center' }}>
                 하루 한 번, 묶어서 보내드려요
               </p>
+              <p className="note" style={{ margin: '10px 0 0', textAlign: 'center' }}>
+                계정은 만들지 않아도 돼요. 나중에 설정에서 이메일만 연결하면, 기기를 바꾸거나 앱을
+                지웠다 깔아도 지금 담은 것들이 그대로 이어집니다.
+              </p>
             </div>
             <div className="foot">
               <button className="btn primary lg block" disabled={busy} onClick={finish}>
