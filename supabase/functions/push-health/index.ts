@@ -8,6 +8,7 @@
  * 메일 발송 키가 없으면 표시만 한다 — 앱 안 배너가 같은 사실을 보여준다.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isCronRequest } from '../_shared/cronAuth.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -56,8 +57,7 @@ async function sendRecoveryEmail(email: string): Promise<boolean> {
 }
 
 Deno.serve(async (req) => {
-  const auth = req.headers.get('Authorization') ?? '';
-  if (!SERVICE_KEY || auth !== `Bearer ${SERVICE_KEY}`) {
+  if (!isCronRequest(req, SERVICE_KEY)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },

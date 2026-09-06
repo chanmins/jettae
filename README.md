@@ -134,15 +134,21 @@ supabase secrets set --env-file supabase/functions/.env
 ```
 
 마지막으로 크론이 엣지 함수를 부를 수 있게 두 값을 Vault에 넣는다.
+`cron_secret`은 `supabase/functions/.env`의 `CRON_SECRET`과 **같은 값**이어야 한다.
 대시보드 SQL 편집기에서 한 번 — `<>` 괄호는 값에 포함하지 않는다:
 
 ```sql
 select vault.create_secret('https://<ref>.supabase.co/functions/v1', 'functions_url');
-select vault.create_secret('<service_role_key>', 'service_role_key');
+select vault.create_secret('<CRON_SECRET과 같은 값>', 'cron_secret');
 ```
 
-`service_role` 키는 Vault가 암호화해 보관하고 복호화 뷰는 postgres·service_role만
-읽으므로 클라이언트로는 나가지 않는다. 값을 갱신할 때는 `vault.update_secret`을 쓴다.
+값을 갱신할 때는 `create_secret`이 아니라 `vault.update_secret`을 쓴다.
+
+크론 인증에 `service_role` 키를 쓰지 않는 이유가 있다. 함수가 비교하는
+`SUPABASE_SERVICE_ROLE_KEY`는 Supabase가 주입하는 값이고, 프로젝트의 API 키 체계에
+따라 형식이 달라진다(레거시 JWT / `sb_secret_…`). 대시보드의 `service_role` 키를
+정확히 넣어도 주입값과 달라 401이 난다. 그래서 맞춰 볼 비밀은 우리가 정한다.
+Vault에 `cron_secret`이 없으면 예전대로 `service_role_key`를 보낸다.
 
 호스팅 Supabase의 postgres 역할은 superuser가 아니라서
 `alter database postgres set app.settings.*`는 42501로 막힌다 — 예전 방식이니 쓰지 않는다.

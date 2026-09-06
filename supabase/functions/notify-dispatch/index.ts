@@ -14,6 +14,7 @@ import { seasonAction } from '../_shared/core/season.ts';
 import { todayIn, clockIn, minutesOfClock } from '../_shared/core/date.ts';
 import type { Item, UserSettings, NotifyStage } from '../_shared/core/types.ts';
 import { rowToItem, type ItemRow } from '../_shared/rows.ts';
+import { isCronRequest } from '../_shared/cronAuth.ts';
 
 /** Cron이 이 간격으로 돈다. 발송 시각이 지난 이 창 안에 들어오면 보낸다. */
 const SLOT_MINUTES = 5;
@@ -249,9 +250,8 @@ async function dispatchFor(
 }
 
 Deno.serve(async (req) => {
-  // Cron만 부를 수 있어야 한다. service_role 키 없이는 아무 일도 하지 않는다.
-  const auth = req.headers.get('Authorization') ?? '';
-  if (!SERVICE_KEY || auth !== `Bearer ${SERVICE_KEY}`) {
+  // Cron만 부를 수 있어야 한다 — CRON_SECRET(없으면 service_role 키)으로 확인한다.
+  if (!isCronRequest(req, SERVICE_KEY)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
