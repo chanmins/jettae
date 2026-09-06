@@ -15,6 +15,7 @@ import {
   applySnoozed,
   applyStillGood,
 } from '../_shared/core/cycle.ts';
+import { applyMuted } from '../_shared/core/cycle.ts';
 import { applySeasonNotYet, applySeasonResume } from '../_shared/core/season.ts';
 import { bulkResetToToday } from '../_shared/core/overdue.ts';
 import { todayIn } from '../_shared/core/date.ts';
@@ -41,6 +42,7 @@ type Response$ =
   | 'season_no'
   | 'bulk_reset'
   | 'ack'
+  | 'mute'
   | 'dismissed';
 
 const RESPONSES = new Set<Response$>([
@@ -51,6 +53,7 @@ const RESPONSES = new Set<Response$>([
   'season_no',
   'bulk_reset',
   'ack',
+  'mute',
   'dismissed',
 ]);
 
@@ -80,6 +83,15 @@ function applyResponse(
       return { next: applySeasonNotYet(item, today), event: null };
     case 'dismissed':
       return { next: applyIgnored(item), event: 'ignored' };
+    /* '계속 알려주세요' — 무시 기록을 씻는다. 응답한 이상 무시가 아니다.
+       예전에는 default로 떨어져 ignoreStreak이 그대로 남았고, 그러면 다음
+       주기에 곧바로 같은 질문이 다시 나갔다. */
+    case 'ack':
+      return { next: applySnoozed(item), event: 'snoozed' };
+    /* '그만 알릴게요' — 알림만 끄고 목록에는 남긴다. 지우는 것이 아니므로
+       나중에 설정에서 되살릴 수 있다. */
+    case 'mute':
+      return { next: applyMuted(item, today), event: null };
     default:
       return { next: item, event: null };
   }

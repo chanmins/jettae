@@ -10,6 +10,7 @@ import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 
 import { buildDailyDigest, markStageSent, type Digest } from '../_shared/core/notify.ts';
+import { applyIgnored } from '../_shared/core/cycle.ts';
 import { seasonAction } from '../_shared/core/season.ts';
 import { todayIn, clockIn, minutesOfClock } from '../_shared/core/date.ts';
 import type { Item, UserSettings, NotifyStage } from '../_shared/core/types.ts';
@@ -22,6 +23,13 @@ const SLOT_MINUTES = 5;
 const BATCH_LIMIT = 500;
 /** 이만큼 연속 실패한 구독은 죽은 것으로 보고 정리한다. */
 const MAX_PUSH_FAILURES = 3;
+/**
+ * 보낸 지 이만큼 지나도록 응답이 없으면 무응답으로 센다.
+ *
+ * 알림을 받자마자 누르는 사람은 드물다. 저녁 8시에 받아 다음 날 아침에
+ * 누르는 것은 응답이지 무시가 아니므로, 하루는 기다린 뒤에 센다.
+ */
+const IGNORE_AFTER_HOURS = 24;
 
 const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
 const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
@@ -38,6 +46,7 @@ interface SettingsRow {
   dormant_until: string | null;
   onboarded_at: string | null;
   last_digest_on: string | null;
+  overdue_nudged_on: string | null;
   silent_streak: number;
   created_at: string;
 }
@@ -57,6 +66,7 @@ function toSettings(row: SettingsRow): UserSettings {
     dormantFrom: row.dormant_from,
     onboardedAt: row.onboarded_at,
     lastDigestOn: row.last_digest_on,
+    overdueNudgedOn: row.overdue_nudged_on,
   };
 }
 
@@ -110,6 +120,65 @@ async function sendPush(
     }
   }
   return { delivered, error: delivered > 0 ? null : lastError };
+}
+
+/**
+ * 응답 없이 만료된 지난 알림을 무응답으로 센다.
+ *
+ * ignore_streak 은 원래 서비스워커의 notificationclose 에서만 올랐다. 그건
+ * 사용자가 알림을 명시적으로 밀어냈을 때만 발생하는 이벤트라, 잠금화면에
+ * 그냥 쌓아 둔 경우 — 즉 실제 무시의 대부분 — 는 한 번도 집계되지 않았다.
+ * 그래서 IGNORE_ASK_THRESHOLD 도, shouldAskKeepNotifying 도 영원히 닿지
+ * 않는 조건이었다.
+ *
+ * 여기서 세는 것은 '보냈는데 아무 반응이 없었다' 이고, 그건 발송한 쪽만 알 수
+ * 있다. 같은 알림을 두 번 세지 않도록 ignore_counted_at 을 찍는다.
+ */
+async function countIgnored(
+  admin: SupabaseClient,
+  userId: string,
+  items: Item[],
+  now: Date,
+): Promise<Item[]> {
+  const cutoff = new Date(now.getTime() - IGNORE_AFTER_HOURS * 3600_000).toISOString();
+  const { data: stale } = await admin
+    .from('notifications')
+    .select('id, item_ids')
+    .eq('user_id', userId)
+    .is('responded_at', null)
+    .is('ignore_counted_at', null)
+    .not('stage', 'is', null)
+    .lt('sent_at', cutoff);
+
+  const rows = (stale ?? []) as Array<{ id: string; item_ids: string[] }>;
+  if (rows.length === 0) return items;
+
+  /* 한 품목이 여러 알림에서 무시됐을 수 있다. 알림 건수만큼 올린다. */
+  const bumps = new Map<string, number>();
+  for (const row of rows) {
+    for (const id of row.item_ids ?? []) bumps.set(id, (bumps.get(id) ?? 0) + 1);
+  }
+
+  const out = items.map((item) => {
+    const n = bumps.get(item.id) ?? 0;
+    let next = item;
+    for (let i = 0; i < n; i++) next = applyIgnored(next);
+    return next;
+  });
+
+  for (const item of out) {
+    if (item.ignoreStreak === (items.find((i) => i.id === item.id)?.ignoreStreak ?? 0)) continue;
+    await admin.from('items').update({ ignore_streak: item.ignoreStreak }).eq('id', item.id);
+  }
+
+  /* 셌다고 표시한다. 품목 갱신이 일부 실패했더라도 여기서 멈추면 다음 번에
+     같은 알림을 또 세게 되므로, 표시는 끝까지 남긴다. */
+  await admin
+    .from('notifications')
+    .update({ ignore_counted_at: now.toISOString() })
+    .in('id', rows.map((r) => r.id));
+
+  return out;
 }
 
 /** 시즌이 끝난 품목을 멈춘다. 서버도 이 정리를 해야 알림 대상이 정확해진다. */
@@ -171,6 +240,7 @@ async function dispatchFor(
 
   let items = ((itemRows ?? []) as ItemRow[]).map(rowToItem);
   items = await sweepSeasons(admin, items, today);
+  items = await countIgnored(admin, row.user_id, items, now);
 
   const digest: Digest | null = buildDailyDigest({
     items,
@@ -230,6 +300,22 @@ async function dispatchFor(
     .from('user_settings')
     .update({ last_digest_on: today })
     .eq('user_id', row.user_id);
+
+  /* 물어본 사실을 남긴다 — 응답이 없어도 다시 묻기까지 간격이 생긴다.
+     발송을 시도한 뒤에 찍는다. 보내지도 않고 물어본 것으로 치면 시즌 질문이
+     통째로 사라진다. */
+  if (digest.askedItemIds?.length) {
+    await admin
+      .from('items')
+      .update({ season_asked_at: today })
+      .in('id', digest.askedItemIds);
+  }
+  if (digest.marksOverdueNudge) {
+    await admin
+      .from('user_settings')
+      .update({ overdue_nudged_on: today })
+      .eq('user_id', row.user_id);
+  }
 
   // 단계를 보낸 것으로 기록해 같은 단계가 두 번 가지 않게 한다.
   if (digest.stage) {

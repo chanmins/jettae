@@ -57,8 +57,13 @@ export function cycleLabel(days: number): string {
     return `${years}년`;
   }
   if (days % 30 === 0) return `${days / 30}개월`;
-  if (days % 7 === 0) return `${days / 7}주`;
+  /* 45일을 넘으면 개월로 말한다. 이 검사가 `% 7`보다 뒤에 있었을 때는
+     91일이 '3개월'이 아니라 '13주'로, 364일이 '52주'로 나왔다 — 7의 배수는
+     주 단위 분기에서 먼저 걸려 이 줄에 닿지 못했기 때문이다. 카탈로그에는
+     그런 값이 없어 눈에 띄지 않았지만, sinceLabel은 임의의 경과일수를
+     받으므로 거기서 그대로 새어 나왔다. */
   if (days > 45) return `${Math.round(days / 30)}개월`;
+  if (days % 7 === 0) return `${days / 7}주`;
   return `${days}일`;
 }
 
@@ -88,6 +93,9 @@ export function elapsedLabel(days: number): string {
 export function sinceLabel(baseDate: ISODate, today: ISODate): string {
   const days = Math.max(0, diffDays(baseDate, today));
   if (days === 0) return '오늘부터예요';
+  /* cycleLabel(1)은 '매일'이다. 주기를 말할 때는 맞지만 흐른 시간에 붙이면
+     "매일 됐어요"가 된다. 하루는 여기서 직접 처리한다. */
+  if (days === 1) return '하루 됐어요';
   return `${cycleLabel(days)} 됐어요`;
 }
 

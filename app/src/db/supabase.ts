@@ -241,6 +241,7 @@ export class SupabaseRepository implements Repository {
             dormantFrom: settings.data.dormant_from as string | null,
             onboardedAt: settings.data.onboarded_at as string | null,
             lastDigestOn: settings.data.last_digest_on as string | null,
+            overdueNudgedOn: settings.data.overdue_nudged_on as string | null,
           }
         : localSnapshot.settings,
       meta: {
@@ -311,6 +312,7 @@ export class SupabaseRepository implements Repository {
         dormant_from: patch.settings.dormantFrom,
         onboarded_at: patch.settings.onboardedAt,
         last_digest_on: patch.settings.lastDigestOn,
+        overdue_nudged_on: patch.settings.overdueNudgedOn,
       });
       if (error) throw error;
     }

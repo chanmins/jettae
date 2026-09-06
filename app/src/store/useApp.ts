@@ -20,7 +20,7 @@ import {
   withBaseDate,
   withCycleDays,
 } from '../core/cycle';
-import { addDays, todayIn } from '../core/date';
+import { addDays, clockIn, todayIn } from '../core/date';
 import {
   applySeasonNotYet,
   applySeasonPause,
@@ -100,6 +100,8 @@ export interface AppState {
   finishDormant: (shift: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   noteDigestSent: () => Promise<void>;
+  /** 알림 발송 경로를 실제로 확인하기 위한 예약. 아래 구현의 주석을 볼 것 */
+  scheduleTestDigest: (minutesFromNow: number) => Promise<string>;
 
   suggestions: () => CycleSuggestion[];
   acceptSuggestion: (s: CycleSuggestion) => Promise<void>;
@@ -436,6 +438,27 @@ export const useApp = create<AppState>((set, get) => {
     async noteDigestSent() {
       const settings = markDigestSent(get().settings, get().today);
       await commit({ settings }, { settings });
+    },
+
+    /**
+     * 알림 시각을 몇 분 뒤로 당기고, 오늘 이미 보냈다는 기록을 지운다.
+     *
+     * 이 두 가지를 같이 해야 하는 이유가 이 기능의 전부다. 시각만 바꾸면
+     * notify-dispatch가 `settings.lastDigestOn === today`에서 곧바로
+     * 돌아선다 — 하루 한 건 규칙이 테스트를 막는다. 실제로 알림이 오는지
+     * 보려면 그 기록도 같이 비워야 한다.
+     *
+     * 크론은 5분마다 돌고 발송 창은 SLOT_MINUTES(5분)이므로, 지정한 시각이
+     * 지난 뒤 최대 5분 안에 도착한다. 2분 뒤로 잡으면 대략 2~7분이다.
+     * 되돌리는 건 설정에서 시각을 다시 고르면 된다.
+     */
+    async scheduleTestDigest(minutesFromNow) {
+      const { settings } = get();
+      const at = new Date(Date.now() + minutesFromNow * 60_000);
+      const hhmm = clockIn(settings.timezone, at);
+      const next = { ...settings, notifyAt: hhmm, lastDigestOn: null };
+      await commit({ settings: next }, { settings: next });
+      return hhmm;
     },
 
     suggestions() {

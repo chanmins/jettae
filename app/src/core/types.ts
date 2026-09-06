@@ -141,6 +141,15 @@ export interface UserSettings {
   onboardedAt: ISODateTime | null;
   /** 마지막으로 알림을 보낸 날. 하루 한 건을 지키기 위한 값 */
   lastDigestOn: ISODate | null;
+  /**
+   * 마지막으로 '밀린 게 N개 있어요'를 보낸 날.
+   *
+   * 이 값이 없던 동안 그 알림은 상태를 아무것도 남기지 않아서, 밀린 항목이
+   * 임계치를 넘긴 사용자에게 매일 같은 문장이 나갔다. 게다가 그 알림은
+   * 우선순위가 높아 그동안 다른 알림이 한 건도 나가지 못했다. 잔소리를
+   * 며칠 간격으로 벌리기 위한 값이다.
+   */
+  overdueNudgedOn: ISODate | null;
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -150,6 +159,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   dormantFrom: null,
   onboardedAt: null,
   lastDigestOn: null,
+  overdueNudgedOn: null,
 };
 
 /** 홈 목록의 상태 3색 */

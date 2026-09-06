@@ -9,6 +9,9 @@ import { NavBar, Sheet, useToast } from '../ui/primitives';
 import { disablePush, enablePush, pushState, type PushState } from '../push/client';
 import { getRepository, isSupabaseRepository, LocalRepository } from '../db';
 
+/** 알림 테스트에서 고를 수 있는 지연. 크론이 5분마다 도니 2분이 최소치다. */
+const TEST_DELAYS = [2, 5, 10, 30] as const;
+
 const DORMANT_OPTIONS = [
   { label: '3일', days: 3 },
   { label: '일주일', days: 7 },
@@ -23,11 +26,13 @@ export default function Settings() {
   const settings = useApp((s) => s.settings);
   const items = useApp((s) => s.items);
   const setNotifyAt = useApp((s) => s.setNotifyAt);
+  const scheduleTestDigest = useApp((s) => s.scheduleTestDigest);
   const beginDormant = useApp((s) => s.beginDormant);
   const finishDormant = useApp((s) => s.finishDormant);
 
   const [push, setPush] = useState<PushState>('default');
   const [dormantSheet, setDormantSheet] = useState(false);
+  const [testSheet, setTestSheet] = useState(false);
   const [accountSheet, setAccountSheet] = useState(false);
   const [email, setEmail] = useState('');
   const [linkedEmail, setLinkedEmail] = useState<string | null>(null);
@@ -64,7 +69,9 @@ export default function Settings() {
           <span className="k">알림 시각</span>
           <input
             type="time"
-            step={300}
+            /* 1분 단위. 5분 단위였을 때는 "3분 뒤"로 맞출 수가 없어서
+               알림이 실제로 오는지 확인하려면 최대 5분을 기다려야 했다. */
+            step={60}
             value={settings.notifyAt}
             onChange={(e) => setNotifyAt(e.target.value || '20:00')}
             style={{
@@ -112,6 +119,16 @@ export default function Settings() {
         </div>
       </div>
       <p className="note">하루 한 번, 여러 품목은 하나로 묶어서 보내드려요</p>
+
+      <div className="fields">
+        <button className="field" onClick={() => setTestSheet(true)}>
+          <span className="k">알림 테스트</span>
+          <span className="v">몇 분 뒤로 맞춰보기 ›</span>
+        </button>
+      </div>
+      <p className="note">
+        지정한 시각이 지난 뒤 최대 5분 안에 도착해요. 발송 서버가 5분마다 도니까요.
+      </p>
 
       <div className="section">휴면</div>
       <div className="fields">
@@ -197,6 +214,46 @@ export default function Settings() {
               </button>
             ))}
           </div>
+        </Sheet>
+      )}
+
+      {testSheet && (
+        <Sheet
+          title="몇 분 뒤로 맞출까요?"
+          lead="알림 시각을 그때로 옮기고, 오늘 이미 보냈다는 기록을 지워요. 그래야 오늘 안에 한 번 더 받아볼 수 있어요."
+          onClose={() => setTestSheet(false)}
+        >
+          <div className="optgrid">
+            {TEST_DELAYS.map((min) => (
+              <button
+                key={min}
+                className="btn"
+                onClick={async () => {
+                  const at = await scheduleTestDigest(min);
+                  setTestSheet(false);
+                  show(`${at}에 보내볼게요`);
+                }}
+              >
+                {min}분 뒤
+              </button>
+            ))}
+          </div>
+          <p className="note" style={{ marginTop: 12 }}>
+            {push === 'granted'
+              ? '보낼 알림이 없으면(오늘 할 일도, 밀린 것도 없으면) 아무것도 오지 않아요. 품목을 하나 밀린 상태로 만들어두고 시험해보세요.'
+              : '먼저 위에서 알림 권한을 켜주세요. 권한이 없으면 시각을 맞춰도 오지 않아요.'}
+          </p>
+          <button
+            className="btn block"
+            style={{ marginTop: 12 }}
+            onClick={async () => {
+              await setNotifyAt('20:00');
+              setTestSheet(false);
+              show('저녁 8시로 되돌렸어요');
+            }}
+          >
+            원래대로 (저녁 8시)
+          </button>
         </Sheet>
       )}
 
