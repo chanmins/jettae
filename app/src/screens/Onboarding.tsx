@@ -21,6 +21,7 @@ import { ONBOARDING_ZONES, type CatalogItem, type Zone } from '../core/types';
 import { CATALOG } from '../store/catalog';
 import { useApp } from '../store/useApp';
 import { itemIcon } from '../ui/itemIcon';
+import { getRepository, isSupabaseRepository } from '../db';
 
 const STEPS = 4;
 
@@ -38,6 +39,7 @@ interface Draft {
   touched: string[];
   notifyAt: string;
   wear: Wear;
+  email: string;
 }
 
 function readDraft(): Draft | null {
@@ -79,7 +81,17 @@ export default function Onboarding() {
    * 이미 집에서 쓰고 있는 물건을 등록한다 — 기본값이 그 사실을 따라야 한다.
    */
   const [wear, setWear] = useState<Wear>(draft?.wear ?? 'half');
+  /*
+   * 이메일은 선택이다. 계정을 요구하면 온보딩에서 사람이 빠져나간다. 다만
+   * 여기서 한 번 물어보지 않으면, 기기를 바꿀 때 담아둔 것이 전부 사라진다는
+   * 사실을 아무도 모른 채로 쓰게 된다.
+   */
+  const [email, setEmail] = useState(draft?.email ?? '');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const repo = getRepository();
+  const canLinkEmail = isSupabaseRepository(repo);
 
   useEffect(() => {
     try {
@@ -92,12 +104,13 @@ export default function Onboarding() {
           touched: [...touched],
           notifyAt,
           wear,
+          email,
         }),
       );
     } catch {
       // 저장이 막혀 있으면 보존을 포기한다. 온보딩 자체는 그대로 돈다.
     }
-  }, [step, zones, checked, touched, notifyAt, wear]);
+  }, [step, zones, checked, touched, notifyAt, wear, email]);
 
   const picks = useMemo(() => onboardingPicks(CATALOG, zones), [zones]);
 
@@ -128,6 +141,29 @@ export default function Onboarding() {
 
   const finish = async () => {
     setBusy(true);
+    setEmailError(null);
+
+    /*
+     * 넣었을 때만 연결한다. 실패하면 온보딩을 끝내지 않고 그 자리에서 알린다 —
+     * 조용히 넘기면 사용자는 연결됐다고 믿고 기기를 바꾼다.
+     */
+    const trimmed = email.trim();
+    if (trimmed !== '') {
+      if (!trimmed.includes('@')) {
+        setEmailError('이메일 주소를 다시 확인해주세요. 비워두고 넘어가셔도 됩니다.');
+        setBusy(false);
+        return;
+      }
+      if (isSupabaseRepository(repo)) {
+        const { error } = await repo.linkEmail(trimmed);
+        if (error) {
+          setEmailError('연결이 안 됐어요. 잠시 뒤 다시 하거나, 비워두고 넘어가세요.');
+          setBusy(false);
+          return;
+        }
+      }
+    }
+
     if (selected.length > 0) {
       await addItems(
         selected.map((catalog) => ({
@@ -319,10 +355,37 @@ export default function Onboarding() {
               <p className="note" style={{ margin: '12px 0 0', textAlign: 'center' }}>
                 하루 한 번, 묶어서 보내드려요
               </p>
-              <p className="note" style={{ margin: '10px 0 0', textAlign: 'center' }}>
-                계정은 만들지 않아도 돼요. 나중에 설정에서 이메일만 연결하면, 기기를 바꾸거나 앱을
-                지웠다 깔아도 지금 담은 것들이 그대로 이어집니다.
-              </p>
+              {canLinkEmail && (
+                <>
+                  <div className="divider" style={{ marginLeft: 0, marginRight: 0 }} />
+                  <div className="section" style={{ padding: '0 0 8px' }}>
+                    이메일 (선택)
+                  </div>
+                  <input
+                    className="input"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError(null);
+                    }}
+                    aria-label="이메일 (선택)"
+                  />
+                  <p className="note" style={{ margin: '8px 0 0' }}>
+                    넣어두시면 기기를 바꾸거나 앱을 지웠다 깔아도 지금 담은 것들이 그대로
+                    이어집니다. 확인 메일이 한 통 가니 링크를 눌러주세요. 비워두고 넘어가셔도
+                    되고, 나중에 설정에서 넣어도 됩니다.
+                  </p>
+                  {emailError && (
+                    <p className="note" style={{ margin: '8px 0 0', color: 'var(--over)' }}>
+                      {emailError}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
             <div className="foot">
               <button className="btn primary lg block" disabled={busy} onClick={finish}>
