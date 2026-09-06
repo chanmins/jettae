@@ -12,7 +12,11 @@ body,
 
 body {
   margin: 0;
-  background: var(--paper);
+  /* 기울기는 body가 깔고, .app은 투명하게 둔다. 넓은 창에서도 여백까지 이어진다.
+     fixed로 붙여 스크롤할 때 기울기가 따라 흐르지 않게 한다. */
+  background-color: var(--paper);
+  background-image: var(--paper-grad);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--f-body);
   font-size: 16px;
@@ -49,7 +53,6 @@ a {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100%;
-  background: var(--paper);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -83,9 +86,9 @@ a {
 
 .hdr h1 {
   margin: 0;
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
 }
 
 .hdr .sub {
@@ -101,7 +104,9 @@ a {
   padding: 14px 12px;
   position: sticky;
   top: 0;
-  background: var(--paper);
+  /* 반투명 + 블러 — 밑으로 지나가는 내용이 비쳐야 떠 있는 것처럼 보인다 */
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(12px);
   z-index: 5;
   border-bottom: 1px solid transparent;
 }
@@ -113,7 +118,8 @@ a {
 .navbar h2 {
   margin: 0;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -134,6 +140,10 @@ a {
   flex: none;
 }
 
+.iconbtn {
+  transition: background-color var(--dur-2) var(--ease);
+}
+
 .iconbtn:hover {
   background: var(--surface-2);
 }
@@ -144,7 +154,8 @@ a {
   background: var(--surface);
   border: 1px solid var(--line-soft);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1);
+  /* 그림자 두 겹 + 윗변 1px 하이라이트. 이 세 개가 같이 있어야 면이 선다. */
+  box-shadow: var(--shadow-1), inset 0 1px 0 var(--line-hair);
 }
 
 .list {
@@ -164,9 +175,11 @@ a {
   border: 1px solid var(--line-soft);
   border-left: 4px solid var(--line);
   border-radius: var(--r-md);
-  padding: 14px 14px 14px 12px;
-  box-shadow: var(--shadow-1);
-  transition: transform 0.12s ease;
+  padding: 15px 14px 15px 12px;
+  box-shadow: var(--shadow-1), inset 0 1px 0 var(--line-hair);
+  transition:
+    transform var(--dur-1) var(--ease),
+    box-shadow var(--dur-2) var(--ease);
   /* 목록 줄은 링크지만 링크처럼 보이면 안 된다 */
   color: inherit;
   text-decoration: none;
@@ -198,7 +211,7 @@ a {
 
 .row .name {
   display: block;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -219,7 +232,9 @@ a {
 .dday {
   font-family: var(--f-mono);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  /* 숫자 폭을 고정해 D-7과 D-21이 같은 자리에서 흔들리지 않게 한다 */
+  font-variant-numeric: tabular-nums;
   padding: 5px 9px;
   border-radius: var(--r-full);
   white-space: nowrap;
@@ -283,7 +298,10 @@ a {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: transform 0.1s ease;
+  transition:
+    transform var(--dur-1) var(--ease),
+    box-shadow var(--dur-2) var(--ease),
+    background-color var(--dur-2) var(--ease);
 }
 
 .btn:active {
@@ -299,6 +317,7 @@ a {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
+  box-shadow: var(--shadow-accent);
 }
 
 .btn.ghost {
@@ -341,6 +360,12 @@ a {
   overflow-x: auto;
   padding: 2px 20px 6px;
   scrollbar-width: none;
+  /*
+   * 옆으로 넘치는 줄은 오른쪽 끝이 칼로 자른 것처럼 보인다. 마지막 12px을
+   * 흐리게 지워서 "더 있다"는 뜻이 되게 한다.
+   */
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 12px), transparent 100%);
+  scroll-padding-inline: 20px;
 }
 
 .chips::-webkit-scrollbar {
@@ -388,6 +413,7 @@ a {
 
 .quick .chips {
   padding: 0;
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
 }
 
 .quick .chip {
@@ -459,7 +485,8 @@ a {
 .prompt h3 {
   margin: 8px 0 4px;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
 .prompt p {
@@ -480,6 +507,8 @@ a {
 .empty h3 {
   margin: 0 0 4px;
   font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
   color: var(--ink);
 }
 
@@ -491,11 +520,11 @@ a {
 /* ─── 섹션 ──────────────────────────────────────────────────────────── */
 
 .section {
-  padding: 18px 20px 6px;
-  font-size: 13px;
-  font-weight: 700;
+  padding: 20px 20px 6px;
+  font-size: 12px;
+  font-weight: 800;
   color: var(--ink-3);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 /* 여닫는 섹션 머리. 손댈 수 있다는 것과 지금 열려 있는지가 보여야 한다 —
@@ -572,6 +601,7 @@ a {
   border-radius: var(--r-lg);
   overflow: hidden;
   box-shadow: var(--shadow-1);
+  background: var(--surface);
 }
 
 .input {
@@ -584,8 +614,9 @@ a {
 }
 
 .input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 /* ─── 탭바 ──────────────────────────────────────────────────────────── */
@@ -686,9 +717,9 @@ a {
 }
 
 .ob h2 {
-  font-size: 25px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   line-height: 1.35;
   margin: 16px 0 10px;
   white-space: pre-line;
@@ -888,14 +919,26 @@ a {
 
 /* ─── 시트 ──────────────────────────────────────────────────────────── */
 
+/*
+ * 딤은 ::before가 맡는다. .sheet-bg 자체에 opacity 애니메이션을 걸면 그 값이
+ * 자식인 시트에도 곱해져서, 페이드되는 동안 시트가 반투명해진다 — 뒤 화면의
+ * 글자가 시트 글자와 겹쳐 보이고, 프레임이 밀리는 기기에서는 그 상태가 눈에
+ * 남는다. 시트는 끝까지 불투명해야 한다.
+ */
 .sheet-bg {
   position: fixed;
   inset: 0;
-  background: rgb(10 14 16 / 45%);
   z-index: 200;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+}
+
+.sheet-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(10 14 16 / 45%);
   animation: fade 0.15s ease;
 }
 
@@ -909,10 +952,13 @@ a {
 }
 
 .sheet {
+  /* ::before(딤)보다 위에 그려지려면 시트도 위치 지정 요소여야 한다 */
+  position: relative;
   width: 100%;
   max-width: 480px;
   background: var(--paper);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  box-shadow: var(--shadow-2);
   padding: 8px 20px calc(20px + var(--safe-b));
   /* dvh를 쓴다 — vh는 주소창이 숨은 상태 기준이라, 주소창이 보이면 시트가
      실제로 보이는 높이보다 커진다. */
@@ -1001,4 +1047,30 @@ a {
   border-right: none;
   border-top: none;
   text-align: left;
+}
+
+/* ─── 포커스 · 모션 ─────────────────────────────────────────────────── */
+
+/*
+ * :focus가 아니라 :focus-visible이다. 탭으로 눌렀을 때까지 링이 남으면
+ * 지저분하고, 키보드로 옮겨다닐 때는 어디에 있는지 반드시 보여야 한다.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

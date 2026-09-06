@@ -353,7 +353,9 @@ export class SupabaseRepository implements Repository {
 
   async currentEmail(): Promise<string | null> {
     const { data } = await this.client.auth.getUser();
-    return data.user?.email ?? null;
+    // 익명 사용자는 email이 빈 문자열로 온다 — ??는 ''를 걸러내지 못하므로 ||를 쓴다.
+    // 이걸 놓치면 설정의 '계정' 행 값이 빈칸으로 보인다.
+    return data.user?.email || null;
   }
 
   /* ─── 가족 공유 (Phase 2) ─────────────────────────────────────── */

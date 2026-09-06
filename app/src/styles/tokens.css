@@ -1,14 +1,31 @@
 /* 제때 — 색·간격·타이포. 기획서의 팔레트를 그대로 쓴다. */
 
 :root {
+  /*
+   * 표면은 4단이다. 라이트에서는 위로 갈수록 밝고, 다크에서는 위로 갈수록
+   * 밝아진다 — 어느 쪽이든 "올라온 면이 더 밝다"는 규칙 하나만 지킨다.
+   *
+   *   paper      바탕
+   *   surface-2  옅은 채움 · 트랙 · 눌린 상태
+   *   surface    카드 · 올라온 면
+   *   surface-3  카드 위에 다시 겹치는 면 (시트 안 카드, 칩)
+   */
   --paper: #eaeef0;
+  --surface-2: #dfe6ea;
   --surface: #fafbfc;
-  --surface-2: #dde4e8;
+  --surface-3: #ffffff;
+
+  /* 바탕에 아주 옅은 기울기를 준다. 단색 회색은 화면이 넓어질수록 비어 보인다. */
+  --paper-grad: radial-gradient(120% 70% at 50% -8%, #f2f5f7 0%, #eaeef0 55%);
+
   --ink: #141a1e;
   --ink-2: #3a464e;
   --ink-3: #6c7a82;
   --line: #c6d0d6;
   --line-soft: #d9e1e5;
+  /* 카드 윗변에 얹는 실선 하이라이트. 두께 1px짜리 광원 역할만 한다. */
+  --line-hair: rgb(255 255 255 / 70%);
+
   --accent: #1b5c71;
   --accent-2: #0f3f50;
   --accent-soft: #d3e3e9;
@@ -22,16 +39,28 @@
   --over: #a33a2b;
   --over-soft: #f6dbd6;
 
-  --shadow-1: 0 1px 2px rgb(20 26 30 / 6%), 0 2px 8px rgb(20 26 30 / 4%);
-  --shadow-2: 0 4px 16px rgb(20 26 30 / 10%);
+  /*
+   * 그림자는 두 겹이다. 첫 겹은 물체의 두께(1~2px, 진하게), 둘째 겹은 바닥에
+   * 퍼지는 빛(넓게, 옅게). 한 겹으로는 카드가 종이에 인쇄된 것처럼 납작하다.
+   */
+  --shadow-1: 0 1px 2px rgb(20 26 30 / 6%), 0 3px 8px rgb(20 26 30 / 4%);
+  --shadow-2: 0 2px 4px rgb(20 26 30 / 7%), 0 14px 32px rgb(20 26 30 / 11%);
+  /* 주요 버튼에만. 강조색을 옅게 흘려서 눌릴 것처럼 보이게 한다. */
+  --shadow-accent: 0 2px 10px rgb(27 92 113 / 22%);
 
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 18px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
   --r-full: 999px;
 
   --f-body: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
   --f-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* 모션 — 한 곳에서 정한다. 화면마다 다른 속도로 움직이면 싸 보인다. */
+  --ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --dur-1: 0.12s;
+  --dur-2: 0.2s;
 
   --tab-h: 60px;
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -42,13 +71,17 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --paper: #0d1316;
+    --surface-2: #1b242a;
     --surface: #141c20;
-    --surface-2: #1d272c;
+    --surface-3: #202b31;
+    --paper-grad: radial-gradient(120% 70% at 50% -8%, #162027 0%, #0d1316 55%);
     --ink: #e5edf1;
     --ink-2: #aebec6;
     --ink-3: #7a8a93;
     --line: #2a373d;
     --line-soft: #202b30;
+    /* 다크에서 흰 하이라이트는 먼지처럼 보인다. 거의 지운다. */
+    --line-hair: rgb(255 255 255 / 6%);
     --accent: #57afc7;
     --accent-2: #7fc8dc;
     --accent-soft: #122f3a;
@@ -59,20 +92,24 @@
     --soon-soft: #33260f;
     --over: #e2705c;
     --over-soft: #361b16;
-    --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
-    --shadow-2: 0 4px 16px rgb(0 0 0 / 50%);
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 3px 8px rgb(0 0 0 / 24%);
+    --shadow-2: 0 2px 4px rgb(0 0 0 / 44%), 0 14px 32px rgb(0 0 0 / 40%);
+    --shadow-accent: 0 2px 12px rgb(87 175 199 / 24%);
   }
 }
 
 :root[data-theme='dark'] {
   --paper: #0d1316;
+  --surface-2: #1b242a;
   --surface: #141c20;
-  --surface-2: #1d272c;
+  --surface-3: #202b31;
+  --paper-grad: radial-gradient(120% 70% at 50% -8%, #162027 0%, #0d1316 55%);
   --ink: #e5edf1;
   --ink-2: #aebec6;
   --ink-3: #7a8a93;
   --line: #2a373d;
   --line-soft: #202b30;
+  --line-hair: rgb(255 255 255 / 6%);
   --accent: #57afc7;
   --accent-2: #7fc8dc;
   --accent-soft: #122f3a;
@@ -83,6 +120,7 @@
   --soon-soft: #33260f;
   --over: #e2705c;
   --over-soft: #361b16;
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
-  --shadow-2: 0 4px 16px rgb(0 0 0 / 50%);
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 3px 8px rgb(0 0 0 / 24%);
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 44%), 0 14px 32px rgb(0 0 0 / 40%);
+  --shadow-accent: 0 2px 12px rgb(87 175 199 / 24%);
 }
