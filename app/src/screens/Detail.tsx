@@ -13,7 +13,7 @@ import {
   stateOf,
 } from '../core/cycle';
 import { formatDot, formatShort } from '../core/date';
-import { cycleLabel, elapsedLabel, remainingLabel } from '../core/humanize';
+import { doneLabel, cycleLabel, elapsedLabel, remainingLabel } from '../core/humanize';
 import { replacementIntervals, median } from '../core/selfCorrect';
 import { nextSeasonStart } from '../core/season';
 import { CATALOG } from '../store/catalog';
@@ -127,7 +127,7 @@ export default function Detail() {
                 show('오늘로 기록해뒀어요');
               }}
             >
-              바꿨어요
+              {doneLabel(item.name)}
             </button>
             <div className="btnrow">
               <button

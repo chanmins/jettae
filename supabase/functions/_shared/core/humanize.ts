@@ -10,6 +10,39 @@ import type { ISODate } from './types.ts';
 import { diffDays } from './date.ts';
 
 /**
+ * 카탈로그에는 두 종류가 섞여 있다. '칫솔'처럼 사서 바꾸는 물건과 '냉장고 청소'
+ * 처럼 해야 하는 일이다. 159종 가운데 40종이 후자다.
+ *
+ * 이 앱의 어휘는 처음부터 교체를 전제했다. 그래서 알림이 "냉장고 청소 바꿀
+ * 때예요"로 나갔다 — 뜻이 통하지 않는다. 종류를 갈라 서술어만 달리 쓴다.
+ *
+ * 카탈로그에 필드를 더하지 않고 이름으로 판정한다. 사용자가 직접 추가한
+ * '욕실 환풍기 청소'에도 같은 규칙이 그대로 걸려야 하기 때문이다.
+ */
+export type ItemKind = 'product' | 'task';
+
+const TASK_SUFFIX = /(청소|세척|점검|제거|테스트|회전|변경|백업|물주기|분갈이)$/;
+
+export function itemKind(name: string): ItemKind {
+  return TASK_SUFFIX.test(name.trim()) ? 'task' : 'product';
+}
+
+/** "칫솔 바꿀 때예요" · "냉장고 청소 할 때예요" */
+export function dueVerb(name: string): string {
+  return itemKind(name) === 'task' ? '할 때예요' : '바꿀 때예요';
+}
+
+/** 미리 알림의 서술어. */
+export function preVerb(name: string): string {
+  return itemKind(name) === 'task' ? '할 때가 다가와요' : '바꿀 때가 다가와요';
+}
+
+/** 완료 버튼·알림 액션 문구. */
+export function doneLabel(name: string): string {
+  return itemKind(name) === 'task' ? '했어요' : '바꿨어요';
+}
+
+/**
  * 주기(일)를 화면·알림에 쓰는 말로. `30 → 한 달`, `14 → 2주`, `540 → 1.5년`
  *
  * 1년이 넘으면 개월 대신 연 단위로 말한다 — "18개월"보다 "1.5년"이 읽힌다.

@@ -25,6 +25,38 @@ export function byCycleThenName(a: CatalogItem, b: CatalogItem): number {
   return a.name.localeCompare(b.name, 'ko');
 }
 
+/**
+ * 같은 묶음은 code 접두어 두 단계가 같다 — per_lens_daily · per_lens_case ·
+ * per_lens_solution. 카탈로그 159종에 이런 묶음이 15개 있다.
+ */
+export function groupKeyOf(item: CatalogItem): string {
+  return item.code.split('_').slice(0, 2).join('_');
+}
+
+/**
+ * 목록을 훑을 때 쓰는 정렬.
+ *
+ * "짧은 주기가 위로"는 그대로 두되 그 판정을 묶음 단위로 한다. 예전에는 콘택트
+ * 렌즈(1일)가 미용 30종의 맨 위, 렌즈 케이스와 세척액(90일)이 한참 아래에 있어서
+ * 같은 물건을 찾으려면 목록을 두 번 훑어야 했다. 묶음의 가장 짧은 주기로 묶음
+ * 순서를 정하고, 묶음 안에서 다시 주기순으로 붙인다.
+ */
+export function byGroupThenCycle(items: readonly CatalogItem[]): CatalogItem[] {
+  const minCycle = new Map<string, number>();
+  for (const item of items) {
+    const key = groupKeyOf(item);
+    const prev = minCycle.get(key);
+    if (prev === undefined || item.cycle_days < prev) minCycle.set(key, item.cycle_days);
+  }
+  return [...items].sort((a, b) => {
+    const ka = groupKeyOf(a);
+    const kb = groupKeyOf(b);
+    if (ka === kb) return byCycleThenName(a, b);
+    // 묶음 주기가 같으면 code로 갈라 순서가 입력 순서에 흔들리지 않게 한다
+    return (minCycle.get(ka) ?? 0) - (minCycle.get(kb) ?? 0) || ka.localeCompare(kb);
+  });
+}
+
 export function buildCatalogIndex(items: readonly CatalogItem[]): CatalogIndex {
   const byCode = new Map<string, CatalogItem>();
   for (const item of items) {
@@ -41,7 +73,7 @@ export function buildCatalogIndex(items: readonly CatalogItem[]): CatalogIndex {
     if (!bucket) throw new Error(`카탈로그에 모르는 구역이 있어요: ${item.zone} (${item.code})`);
     bucket.push(item);
   }
-  for (const bucket of byZone.values()) bucket.sort(byCycleThenName);
+  for (const zone of ZONES) byZone.set(zone, byGroupThenCycle(byZone.get(zone) ?? []));
 
   return { all: items, byCode, byZone };
 }

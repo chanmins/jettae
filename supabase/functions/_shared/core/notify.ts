@@ -11,7 +11,7 @@
 import { addDays, compareDate, diffDays } from './date.ts';
 import { daysRemaining, nextDueOf, isOverdue } from './cycle.ts';
 import { seasonAction } from './season.ts';
-import { cycleLabel, joinNames, sinceLabel } from './humanize.ts';
+import { cycleLabel, doneLabel, dueVerb, itemKind, joinNames, preVerb, sinceLabel } from './humanize.ts';
 import type { ISODate, Item, NotifyStage, UserSettings } from './types.ts';
 
 /** 미리 알림을 보내는 시점. 주기 1개월 이상 품목만 받는다. */
@@ -105,6 +105,8 @@ export const ADD_MORE_AFTER_DAYS = 2;
 const A = {
   replaced: { id: 'replaced', title: '바꿨어요' } as NotifyAction,
   replacedAll: { id: 'replaced', title: '다 바꿨어요' } as NotifyAction,
+  /* 할 일이 섞인 묶음에는 '다 바꿨어요'가 맞지 않는다 */
+  doneAll: { id: 'replaced', title: '다 챙겼어요' } as NotifyAction,
   snoozed: { id: 'snoozed', title: '아직이요' } as NotifyAction,
   open: { id: 'open', title: '앱에서 볼게요' } as NotifyAction,
   ack: { id: 'ack', title: '알겠어요' } as NotifyAction,
@@ -183,7 +185,7 @@ export function buildDailyDigest(ctx: DigestContext): Digest | null {
         stage: 'due',
         title: `${safety.name}, ${cycleLabel(safety.cycleDays)} 됐어요`,
         body: '안전 항목이라 미루지 않는 게 좋아요',
-        actions: [A.replaced, A.snoozed],
+        actions: [{ id: 'replaced', title: doneLabel(safety.name) }, A.snoozed],
       };
     }
     if (due.length === 1) {
@@ -192,18 +194,24 @@ export function buildDailyDigest(ctx: DigestContext): Digest | null {
         kind: 'due_single',
         itemIds: [it.id],
         stage: 'due',
-        title: `${it.name} 바꿀 때예요`,
+        title: `${it.name} ${dueVerb(it.name)}`,
         body: sinceLabel(it.baseDate, today),
-        actions: [A.replaced, A.snoozed],
+        actions: [{ id: 'replaced', title: doneLabel(it.name) }, A.snoozed],
       };
     }
     return {
       kind: 'due_bundle',
       itemIds: due.map((i) => i.id),
       stage: 'due',
-      title: `오늘 바꿀 것 ${due.length}개`,
+      // 전부 제품일 때만 '바꿀 것'이다. 할 일이 하나라도 섞이면 중립적으로 쓴다.
+      title: due.every((i) => itemKind(i.name) === 'product')
+        ? `오늘 바꿀 것 ${due.length}개`
+        : `오늘 챙길 것 ${due.length}개`,
       body: joinNames(due.map((i) => i.name)),
-      actions: [A.replacedAll, A.open],
+      actions: [
+        due.every((i) => itemKind(i.name) === 'product') ? A.replacedAll : A.doneAll,
+        A.open,
+      ],
     };
   }
 
@@ -221,16 +229,23 @@ export function buildDailyDigest(ctx: DigestContext): Digest | null {
         stage,
         title: `${it.name}, 아직 멀쩡한가요?`,
         body: '덜 쓰셨으면 좀 더 미뤄드릴게요',
-        actions: it.safetyLocked ? [A.replaced, A.snoozed] : [A.stillGood, A.soon],
+        actions: it.safetyLocked
+          ? [{ id: 'replaced', title: doneLabel(it.name) }, A.snoozed]
+          : [A.stillGood, A.soon],
       };
     }
     return {
       kind: 'followup',
       itemIds: followup.map((i) => i.id),
       stage,
-      title: `아직 안 바꾼 게 ${followup.length}개 있어요`,
+      title: followup.every((i) => itemKind(i.name) === 'product')
+        ? `아직 안 바꾼 게 ${followup.length}개 있어요`
+        : `아직 안 챙긴 게 ${followup.length}개 있어요`,
       body: joinNames(followup.map((i) => i.name)),
-      actions: [A.replacedAll, A.open],
+      actions: [
+        followup.every((i) => itemKind(i.name) === 'product') ? A.replacedAll : A.doneAll,
+        A.open,
+      ],
     };
   }
 
@@ -242,7 +257,7 @@ export function buildDailyDigest(ctx: DigestContext): Digest | null {
       kind: 'pre',
       itemIds: pre.map((i) => i.id),
       stage: 'pre',
-      title: `${it.name} 바꿀 때가 다가와요`,
+      title: `${it.name} ${preVerb(it.name)}`,
       body: '일주일 뒤예요. 미리 봐두시면 좋아요',
       actions: [A.ack],
     };

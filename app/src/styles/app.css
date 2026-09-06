@@ -804,11 +804,29 @@ a {
   flex: 1;
   font-weight: 600;
   font-size: 15px;
+  /* 한국어는 어절 경계에서 끊는다 — 기본값으로는 '세척'이 '세/척'으로 갈린다 */
+  word-break: keep-all;
 }
 
 .checkline .cy {
   font-size: 13px;
   color: var(--ink-3);
+}
+
+/*
+ * '할 일' 표시. 카탈로그에는 사서 바꾸는 물건과 해야 하는 일이 섞여 있는데,
+ * 이름만 보면 '키친타월 홀더 청소'가 제품인지 일인지 알 수 없다.
+ */
+.tag {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  border-radius: var(--r-full);
+  padding: 3px 8px;
+  line-height: 1.4;
 }
 
 /*
@@ -890,6 +908,7 @@ a {
   flex: 1;
   font-weight: 600;
   font-size: 15px;
+  word-break: keep-all;
 }
 
 .catrow .cy {

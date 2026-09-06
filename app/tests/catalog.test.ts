@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import raw from '../src/data/catalog.json';
 import {
   buildCatalogIndex,
+  groupKeyOf,
   onboardingPicks,
   searchCatalog,
   paoOptions,
@@ -61,11 +62,37 @@ describe('카탈로그 시드', () => {
 });
 
 describe('buildCatalogIndex', () => {
-  it('구역별로 짧은 주기가 위로 온다', () => {
+  /*
+   * "짧은 주기가 위로"는 이제 품목 단위가 아니라 묶음 단위다. 렌즈 세척액(90일)이
+   * 콘택트렌즈(1일) 바로 아래 붙으므로 품목만 보면 주기가 오르내린다 — 같은
+   * 물건을 목록의 양 끝에서 두 번 찾는 것보다 이게 낫다.
+   */
+  it('구역별로 짧은 주기 묶음이 위로 온다', () => {
     const kitchen = index.byZone.get('주방')!;
     expect(kitchen.length).toBeGreaterThan(0);
-    for (let i = 1; i < kitchen.length; i++) {
-      expect(kitchen[i].cycle_days).toBeGreaterThanOrEqual(kitchen[i - 1].cycle_days);
+    const groupMin = new Map<string, number>();
+    for (const item of kitchen) {
+      const key = groupKeyOf(item);
+      groupMin.set(key, Math.min(groupMin.get(key) ?? Infinity, item.cycle_days));
+    }
+    const order = [...new Set(kitchen.map(groupKeyOf))].map((k) => groupMin.get(k)!);
+    for (let i = 1; i < order.length; i++) {
+      expect(order[i]).toBeGreaterThanOrEqual(order[i - 1]);
+    }
+  });
+
+  it('묶음 안에서는 짧은 주기가 위로 온다', () => {
+    for (const bucket of index.byZone.values()) {
+      let prevKey = '';
+      let prevCycle = 0;
+      for (const item of bucket) {
+        const key = groupKeyOf(item);
+        if (key === prevKey) {
+          expect(item.cycle_days, item.name).toBeGreaterThanOrEqual(prevCycle);
+        }
+        prevKey = key;
+        prevCycle = item.cycle_days;
+      }
     }
   });
 

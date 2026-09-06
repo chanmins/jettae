@@ -16,7 +16,7 @@ import {
   WEAR_OPTIONS,
   type Wear,
 } from '../core/catalog';
-import { cycleLabel } from '../core/humanize';
+import { cycleLabel, itemKind } from '../core/humanize';
 import { ONBOARDING_ZONES, type CatalogItem, type Zone } from '../core/types';
 import { CATALOG } from '../store/catalog';
 import { useApp } from '../store/useApp';
@@ -242,6 +242,9 @@ export default function Onboarding() {
                           {itemIcon(item)}
                         </span>
                         <span className="nm">{item.name}</span>
+                        {itemKind(item.name) === 'task' && (
+                          <span className="tag">할 일</span>
+                        )}
                         <span className="cy">{cycleLabel(item.cycle_days)}</span>
                       </button>
                     );

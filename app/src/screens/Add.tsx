@@ -7,7 +7,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { baseDateForWear, searchCatalog, WEAR_OPTIONS, type Wear } from '../core/catalog';
-import { cycleLabel } from '../core/humanize';
+import { cycleLabel, itemKind } from '../core/humanize';
 import { isFrequent } from '../core/cycle';
 import { ZONES, type CatalogItem, type Zone } from '../core/types';
 import { CATALOG } from '../store/catalog';
@@ -265,6 +265,7 @@ function CatalogRow({
         {item.name}
         {showZone && <span className="cy"> · {item.zone}</span>}
       </span>
+      {itemKind(item.name) === 'task' && <span className="tag">할 일</span>}
       <span className="cy">{cycleLabel(item.cycle_days)}</span>
       <span className="add" aria-hidden="true">
         {on ? '✓' : item.input_type === 'pao' ? '›' : '+'}
