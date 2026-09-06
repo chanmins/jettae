@@ -113,6 +113,15 @@ supabase db push                  # 스키마 → RLS → RPC → 카탈로그 �
 supabase functions deploy notify-dispatch notify-respond push-health
 ```
 
+그리고 대시보드에서 **익명 로그인을 켠다** — Authentication → Sign In / Providers →
+Anonymous sign-ins. 이 앱은 온보딩에서 로그인을 요구하지 않고
+`signInAnonymously()`로 세션을 만들기 때문에(`db/supabase.ts`의 `ensureSession`),
+꺼져 있으면 422 `anonymous_provider_disabled`가 나고 앱이 **조용히 로컬 전용으로
+떨어진다.** 화면은 정상이라 알아채기 어렵고, 푸시 구독도 서버에 저장되지 않는다.
+
+`config.toml`에도 `enable_anonymous_sign_ins = true`가 있지만, `supabase config push`는
+`site_url`까지 로컬 주소로 덮어쓰니 이 설정만 바꿀 때는 대시보드에서 켠다.
+
 VAPID 키를 만들고 양쪽에 넣는다:
 
 ```bash
